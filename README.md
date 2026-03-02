@@ -4,15 +4,15 @@ A component library built on top of [ink-web](https://github.com/cjroth/ink-web)
 
 ## What is this?
 
-ink-web-ui provides ready-to-use terminal components for web applications. It bridges the gap between terminal interfaces and the browser — write terminal UIs with Ink's `Box` and `Text` primitives and render them in a real xterm terminal embedded in your web app.
+ink-web-ui provides ready-to-use terminal components for web applications. It bridges the gap between terminal interfaces and the browser. Write terminal UIs with Ink's `Box` and `Text` primitives and render them in a real xterm terminal embedded in your web app.
 
 ## Tech Stack
 
-- **Next.js** — App framework
-- **ink-web** — Ink renderer for the browser
-- **xterm.js** — Terminal emulator
-- **Fumadocs** — Documentation
-- **Tailwind CSS** — Styling
+- **Next.js**: App framework
+- **ink-web**: Ink renderer for the browser
+- **xterm.js**: Terminal emulator
+- **Fumadocs**: Documentation
+- **Tailwind CSS**: Styling
 
 ## Getting Started
 
