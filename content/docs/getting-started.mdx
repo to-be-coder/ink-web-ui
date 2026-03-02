@@ -1,0 +1,44 @@
+---
+title: Getting Started
+description: Get started with ink-web-ui
+---
+
+## Installation
+
+Follow the [ink-web installation guide](https://www.ink-web.dev/docs) to set up your project, then start using ink-web-ui components.
+
+## Quick Start
+
+Create a terminal component:
+
+```tsx
+'use client'
+
+import { InkTerminalBox, Box, Text } from 'ink-web'
+import 'ink-web/css'
+import 'xterm/css/xterm.css'
+
+export const Terminal = () => (
+  <InkTerminalBox focus rows={10}>
+    <Box flexDirection="column">
+      <Text color="green">Hello from Ink!</Text>
+    </Box>
+  </InkTerminalBox>
+)
+```
+
+Then dynamically import it in your page (SSR must be disabled for terminal components):
+
+```tsx
+'use client'
+
+import dynamic from 'next/dynamic'
+
+const Terminal = dynamic(() => import('./terminal'), {
+  ssr: false,
+})
+
+export default function Home() {
+  return <Terminal />
+}
+```

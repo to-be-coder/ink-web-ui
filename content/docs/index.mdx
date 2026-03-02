@@ -1,52 +1,10 @@
 ---
-title: Getting Started
-description: Get started with ink-ui
+title: Introduction
+description: Introduction to ink-web-ui
 ---
 
-## Introduction
+ink-web-ui is a component library built on top of [ink-web](https://www.ink-web.dev/).
 
-ink-ui is a terminal UI component library built with [Ink](https://github.com/vadimdemedes/ink) for the web using ink-web and xterm.
+[Ink](https://github.com/vadimdemedes/ink) is a widely adopted React framework for building interactive command-line interfaces. [ink-web](https://www.ink-web.dev/) extends Ink so your components run in both the terminal and the browser. In the browser, it renders inside a real [xterm.js](https://xtermjs.org/) terminal emulator. Your existing Ink code works without modification: the same React components, the same keyboard handling, the same layout engine (Yoga, compiled to WebAssembly). Write once, run in both environments. No containerized Node.js runtime required, just a lightweight drop-in with full ANSI color support, responsive resizing, and proper terminal behavior.
 
-## Installation
-
-Install ink-ui and its peer dependencies:
-
-```bash
-bun add ink-web xterm
-```
-
-## Quick Start
-
-Create a terminal component:
-
-```tsx
-"use client";
-
-import { InkXterm, Box, Text } from "ink-web";
-import "ink-web/css";
-import "xterm/css/xterm.css";
-
-export const Terminal = () => (
-  <InkXterm focus>
-    <Box flexDirection="column">
-      <Text color="green">Hello from Ink!</Text>
-    </Box>
-  </InkXterm>
-);
-```
-
-Then dynamically import it in your page (SSR must be disabled for terminal components):
-
-```tsx
-"use client";
-
-import dynamic from "next/dynamic";
-
-const Terminal = dynamic(() => import("./terminal"), {
-  ssr: false,
-});
-
-export default function Home() {
-  return <Terminal />;
-}
-```
+ink-web-ui provides a growing set of pre-built components on top of this foundation, so you can assemble interactive terminal experiences for the web without writing everything from scratch.

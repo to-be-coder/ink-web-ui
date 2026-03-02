@@ -1,15 +1,14 @@
 "use client";
 
-import { InkXterm, Box, Text } from "ink-web";
+import { InkTerminalBox } from "ink-web";
 import "ink-web/css";
 import "xterm/css/xterm.css";
+import { TaskList } from "../components/TaskList";
 
 export const Terminal = () => (
-  <InkXterm focus>
-    <Box flexDirection="column">
-      <Text color="green">Hello from Ink!</Text>
-    </Box>
-  </InkXterm>
+  <InkTerminalBox focus rows={12}>
+    <TaskList />
+  </InkTerminalBox>
 );
 
 export default Terminal;

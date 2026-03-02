@@ -1,0 +1,152 @@
+---
+title: Task List
+description: An interactive terminal task list with keyboard navigation
+---
+
+## Demo
+
+Click the terminal below to focus it, then use the keyboard to interact.
+
+<TaskListDemo />
+
+## Features
+
+- **Navigate** with `↑` `↓` or `j` `k`
+- **Toggle** a task with `space` or `enter`
+- **Add** a task by pressing `a`, typing, then `enter`
+- **Delete** the selected task with `d`
+
+## Usage
+
+```tsx
+"use client";
+
+import { InkTerminalBox } from "ink-web";
+import "ink-web/css";
+import "xterm/css/xterm.css";
+import { TaskList } from "@/components/TaskList";
+
+export default function MyPage() {
+  return (
+    <InkTerminalBox focus rows={12}>
+      <TaskList />
+    </InkTerminalBox>
+  );
+}
+```
+
+## Source
+
+```tsx
+import React, { useState } from "react";
+import { Box, Text, useInput } from "ink-web";
+
+interface Task {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
+export function TaskList() {
+  const [tasks, setTasks] = useState<Task[]>([
+    { id: 1, text: "Try ink-web components", done: false },
+    { id: 2, text: "Build a terminal UI", done: false },
+    { id: 3, text: "Ship it to production", done: false },
+  ]);
+  const [cursor, setCursor] = useState(0);
+  const [input, setInput] = useState("");
+  const [mode, setMode] = useState<"navigate" | "add">("navigate");
+
+  useInput((ch, key) => {
+    if (mode === "add") {
+      if (key.return) {
+        if (input.trim()) {
+          setTasks((prev) => [
+            ...prev,
+            { id: Date.now(), text: input.trim(), done: false },
+          ]);
+        }
+        setInput("");
+        setMode("navigate");
+      } else if (key.escape) {
+        setInput("");
+        setMode("navigate");
+      } else if (key.backspace || key.delete) {
+        setInput((prev) => prev.slice(0, -1));
+      } else if (ch && !key.ctrl && !key.meta) {
+        setInput((prev) => prev + ch);
+      }
+      return;
+    }
+
+    if (key.upArrow || ch === "k") {
+      setCursor((prev) => Math.max(0, prev - 1));
+    } else if (key.downArrow || ch === "j") {
+      setCursor((prev) => Math.min(tasks.length - 1, prev + 1));
+    } else if (ch === " " || key.return) {
+      setTasks((prev) =>
+        prev.map((t, i) =>
+          i === cursor ? { ...t, done: !t.done } : t
+        )
+      );
+    } else if (ch === "a") {
+      setMode("add");
+    } else if (ch === "d" && tasks.length > 0) {
+      setTasks((prev) => prev.filter((_, i) => i !== cursor));
+      setCursor((prev) => Math.min(prev, tasks.length - 2));
+    }
+  });
+
+  const done = tasks.filter((t) => t.done).length;
+
+  return (
+    <Box flexDirection="column" paddingX={1}>
+      <Box marginBottom={1}>
+        <Text bold color="cyan"> Tasks </Text>
+        <Text dimColor> {done}/{tasks.length} done</Text>
+      </Box>
+
+      {tasks.map((task, i) => (
+        <Box key={task.id}>
+          <Text color={i === cursor ? "cyan" : undefined}>
+            {i === cursor ? "❯" : " "}{" "}
+          </Text>
+          <Text color={task.done ? "green" : "gray"}>
+            {task.done ? "✔" : "○"}{" "}
+          </Text>
+          <Text strikethrough={task.done} dimColor={task.done}>
+            {task.text}
+          </Text>
+        </Box>
+      ))}
+
+      {mode === "add" && (
+        <Box marginTop={1}>
+          <Text color="yellow">+ </Text>
+          <Text>{input}</Text>
+          <Text color="gray">▌</Text>
+        </Box>
+      )}
+
+      <Box marginTop={1} gap={2}>
+        <Box>
+          <Text inverse bold> ↑↓ </Text>
+          <Text dimColor> move</Text>
+        </Box>
+        <Box>
+          <Text inverse bold> space </Text>
+          <Text dimColor> toggle</Text>
+        </Box>
+        <Box>
+          <Text inverse bold> a </Text>
+          <Text dimColor> add</Text>
+        </Box>
+        <Box>
+          <Text inverse bold> d </Text>
+          <Text dimColor> delete</Text>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+```
