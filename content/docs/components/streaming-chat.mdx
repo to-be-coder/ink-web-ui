@@ -1,0 +1,27 @@
+---
+title: Streaming Chat
+description: AI conversation interface with token-by-token streaming, tool calls, and message history
+---
+
+## Demo
+
+Click the terminal below and press `space` to advance through a demo conversation. Watch the assistant's response stream in character by character.
+
+<StreamingChatDemo />
+
+## Features
+
+- **Token-by-token streaming** rendering assistant responses as they arrive
+- **Message roles** with distinct styling for user, assistant, and tool messages
+- **Inline tool calls** showing tool name, input arguments, and returned output
+- **Conversation history** with scrollable message thread
+- **Text input mode** for typing custom messages
+- **Auto-advancing** tool calls and non-user messages flow naturally
+
+## Keybindings
+
+- `space` advance to next message in demo
+- `i` enter text input mode
+- `j` / `k` scroll through message history
+- `G` jump to latest message
+- `r` reset conversation

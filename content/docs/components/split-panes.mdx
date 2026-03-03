@@ -1,0 +1,31 @@
+---
+title: Split Panes
+description: Resizable split panes with focus management, inspired by Ratatui's layout solver
+---
+
+## Demo
+
+Click the terminal below. Use `tab` to switch panes, `ctrl+r` to enter resize mode, `v` to toggle layout.
+
+<SplitPanesDemo />
+
+## Features
+
+- **Resizable split** with configurable ratio stored as percentage
+- **Focus management** with `tab` cycling between left and right panes
+- **Resize mode** activated with `ctrl+r`, adjust with arrow keys in 5% steps
+- **Minimum pane size** of 15% prevents collapsing
+- **Layout toggle** between horizontal (left/right) and vertical (top/bottom)
+- **File list** with cursor navigation and extension-based icons
+- **Preview pane** showing content of the selected file with line numbers
+- **Scrollable preview** when content exceeds pane height
+- **Visual divider** highlights in primary color when resize mode is active
+
+## Keybindings
+
+- `tab` switch focus between panes
+- `v` toggle horizontal/vertical layout
+- `ctrl+r` enter resize mode
+- `left` / `right` adjust split ratio (in resize mode)
+- `enter` / `esc` exit resize mode
+- `up` / `down` navigate file list or scroll preview

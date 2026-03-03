@@ -1,0 +1,40 @@
+---
+title: Fuzzy Finder
+description: Fuzzy finder with preview pane, inspired by fzf's matching algorithm
+---
+
+## Demo
+
+Click the terminal below. Type to search, use arrow keys to navigate results, `enter` to select.
+
+<FuzzyFinderDemo />
+
+## Features
+
+- **Fuzzy matching algorithm** with scoring based on match position, word boundaries, consecutive matches, and camelCase transitions
+- **Real-time search** with instant feedback as you type
+- **Highlighted matches** showing matched characters in bold warning color
+- **Score display** next to each result for transparency
+- **Smart path rendering** with dimmed directories and bold filenames
+- **Preview pane** showing file content for the selected result
+- **Toggle preview** with `ctrl+p` to maximize results area
+- **Match count** showing filtered vs total items
+- **Selection confirmation** with visual feedback
+
+## Fuzzy Scoring
+
+The fuzzy scorer awards points for:
+- **+16** per matched character
+- **+10** for word boundary matches (after `/`, `.`, `-`, `_`, space)
+- **+8** for consecutive character matches
+- **+5** for camelCase transitions
+- **-1** per gap between matched characters
+
+## Keybindings
+
+- Type to search
+- `up` / `down` navigate results
+- `enter` select highlighted result
+- `esc` clear search
+- `backspace` delete last character
+- `ctrl+p` toggle preview pane visibility

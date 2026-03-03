@@ -1,0 +1,32 @@
+---
+title: Spring Animation
+description: Harmonica-inspired physics-based spring animations for smooth, natural motion in the terminal
+---
+
+## Demo
+
+Click the terminal below. Press `space` or arrow keys to trigger spring animations and compare three damping presets side by side.
+
+<SpringAnimationDemo />
+
+## Features
+
+- **Physics-based springs** using a damped harmonic oscillator running at 60fps
+- **Three damping presets** shown simultaneously: Bouncy (0.3), Smooth (1.0), and Heavy (2.0)
+- **Real-time velocity display** with bar visualization and numeric readout
+- **Target indicator** showing where the springs are animating toward
+- **Interactive controls** to trigger, toggle direction, and reset animations
+
+## Keybindings
+
+- `space` animate all springs to the opposite end
+- `left` / `right` toggle target position
+- `r` reset all springs to start position
+
+## Spring Presets
+
+| Preset | Damping Ratio | Behavior |
+|--------|--------------|----------|
+| Bouncy | 0.3 | Underdamped - overshoots and oscillates before settling |
+| Smooth | 1.0 | Critically damped - fastest approach with no overshoot |
+| Heavy  | 2.0 | Overdamped - slow, gradual approach to target |

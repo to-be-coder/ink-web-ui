@@ -1,0 +1,31 @@
+---
+title: Tree View
+description: Interactive tree view with expand/collapse, search/filter, and virtualization for navigating hierarchical data
+---
+
+## Demo
+
+Click the terminal below. Use arrow keys or `j`/`k` to navigate, `space` to toggle folders, `/` to search.
+
+<TreeViewDemo />
+
+## Features
+
+- **Box-drawing tree guides** using `├──`, `└──`, and `│` characters for clear hierarchy
+- **Expand/collapse** individual folders or all at once
+- **Search and filter** with `/` to find nodes by name, showing matching nodes and their ancestor paths
+- **Virtualized scrolling** renders only visible rows for large trees
+- **File type icons** colored by extension (`.tsx`/`.jsx`, `.ts`/`.js`, `.json`, `.md`)
+- **Path display** shows full path of the currently selected node
+- **Vim-style navigation** with `h`/`j`/`k`/`l` and arrow key support
+
+## Keybindings
+
+- `j` / `k` or `↑` / `↓` move cursor up/down
+- `l` / `→` / `enter` expand folder
+- `h` / `←` collapse folder or move to parent
+- `space` toggle expand/collapse
+- `e` expand all nodes
+- `c` collapse all nodes
+- `/` enter search mode
+- `esc` exit search mode

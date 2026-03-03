@@ -1,0 +1,37 @@
+---
+title: DataTable
+description: Advanced data table with virtual scrolling, multi-column sorting, filtering, and cell-level navigation
+---
+
+## Demo
+
+Click the terminal below. Use arrow keys to navigate cells, `s` to sort, `/` to filter.
+
+<DataTableDemo />
+
+## Features
+
+- **Cell-based cursor** with row and column navigation and active cell highlighting
+- **Virtual scrolling** rendering only visible rows with a scrollbar indicator
+- **Multi-column sorting** with primary (`s`) and secondary (`S`) sort support, cycling none/asc/desc
+- **Numeric-aware sorting** that correctly orders number columns like CPU% and Memory
+- **Text filtering** with live search across all columns and match count display
+- **Row selection** with multi-select, select all, and clear controls
+- **Status coloring** with conditional cell colors (running=green, stopped=red, pending=yellow)
+- **Zebra striping** with alternating row background shading
+- **Sort indicators** showing `▲` (asc), `▼` (desc), or `·` (unsorted) per column
+
+## Keybindings
+
+- `↑` / `↓` move cursor row
+- `←` / `→` move cursor column
+- `page up` / `page down` jump 10 rows
+- `g` go to first row, `G` go to last row
+- `s` toggle sort on current column (cycles: none → asc → desc → none)
+- `S` add/toggle secondary sort on current column
+- `space` toggle row selection
+- `a` select all visible rows
+- `x` clear all selections
+- `/` enter filter mode, type to filter across all columns
+- `esc` exit filter mode (keeps filter)
+- `ctrl+x` clear filter and exit filter mode

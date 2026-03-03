@@ -1,0 +1,36 @@
+---
+title: Modal
+description: Floating window system with focus trapping, stacked dialogs, and keyboard-driven interaction
+---
+
+## Demo
+
+Click the terminal below. Navigate the project list, press `enter` to view details, or `d` to open a delete confirmation dialog.
+
+<ModalDemo />
+
+## Features
+
+- **Detail modal** with double border showing project information
+- **Confirm modal** with yes/no choice for destructive actions
+- **Modal stacking** - open a confirm dialog from within the detail view
+- **Focus trapping** - only the topmost modal captures keyboard input
+- **Automatic cleanup** - deleting a project closes all related modals
+- **Cursor management** - cursor adjusts when items are removed
+
+## Keybindings
+
+### List view
+- `j` / `k` or `up` / `down` navigate projects
+- `enter` open detail modal
+- `d` open delete confirmation
+
+### Detail modal
+- `d` open delete confirmation
+- `esc` close modal
+
+### Confirm modal
+- `y` confirm delete
+- `n` or `esc` cancel
+- `left` / `right` / `tab` toggle selection
+- `enter` confirm current selection

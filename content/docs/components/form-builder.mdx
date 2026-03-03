@@ -1,0 +1,29 @@
+---
+title: Form Builder
+description: Huh-inspired multi-step form builder with validation, multiple field types, and group-based navigation
+---
+
+## Demo
+
+Click the terminal below to focus it, then interact with the multi-step form.
+
+<FormBuilderDemo />
+
+## Features
+
+- **Multi-step groups** with progress indicator (Step 1/3, 2/3, 3/3) and dot navigation
+- **Select fields** with arrow-key navigation and radio-style indicators
+- **Input fields** with inline validation and error messages
+- **MultiSelect fields** with space-toggle, max selection limits, and checkbox indicators
+- **Confirm fields** with yes/no toggle via `y`/`n` or arrow keys
+- **Note fields** for displaying a summary of previous selections
+- **Submitted view** showing all collected values in a clean summary
+
+## Keybindings
+
+- `tab` / `shift+tab` move between fields within a group
+- `enter` advance to next field or next group
+- `j` / `k` or `up` / `down` navigate select and multiselect options
+- `space` toggle multiselect items
+- `y` / `n` or `left` / `right` toggle confirm fields
+- `backspace` delete input characters; on empty first field, go to previous group

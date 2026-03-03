@@ -1,5 +1,6 @@
 import { useReducer } from 'react'
 import { Box, Text, useInput } from 'ink-web'
+import { useTheme } from './theme'
 
 interface Task {
   id: number
@@ -89,6 +90,7 @@ const KEYBINDINGS = [
 ]
 
 export function TaskList() {
+  const colors = useTheme()
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const { tasks, cursor, input, mode } = state
 
@@ -113,7 +115,7 @@ export function TaskList() {
   return (
     <Box flexDirection="column" paddingX={1}>
       <Box marginBottom={1}>
-        <Text bold color="cyan"> Tasks </Text>
+        <Text bold color={colors.primary}> Tasks </Text>
         <Text dimColor> {done}/{tasks.length} done</Text>
       </Box>
 
@@ -124,10 +126,10 @@ export function TaskList() {
           const active = i === cursor && mode === 'navigate'
           return (
             <Box key={task.id}>
-              <Text color={active ? 'cyan' : undefined}>
+              <Text color={active ? colors.primary : undefined}>
                 {active ? '❯' : ' '}{' '}
               </Text>
-              <Text color={task.done ? 'green' : 'gray'}>
+              <Text color={task.done ? colors.success : 'gray'}>
                 {task.done ? '✔' : '○'}{' '}
               </Text>
               <Text strikethrough={task.done} dimColor={task.done}>
@@ -140,7 +142,7 @@ export function TaskList() {
 
       {mode === 'add' && (
         <Box marginTop={1}>
-          <Text color="yellow">+ </Text>
+          <Text color={colors.warning}>+ </Text>
           <Text>{input}</Text>
           <Text color="gray">▌</Text>
         </Box>

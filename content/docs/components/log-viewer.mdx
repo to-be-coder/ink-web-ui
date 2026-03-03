@@ -1,0 +1,32 @@
+---
+title: Log Viewer
+description: Real-time streaming log viewer with level filtering, search, and auto-scroll
+---
+
+## Demo
+
+Click the terminal below to interact. Logs stream in automatically.
+
+<LogViewerDemo />
+
+## Features
+
+- **Real-time streaming** with auto-scroll that pauses when you scroll up and resumes at bottom
+- **Level filtering** by error, warning, info, and debug with toggle controls
+- **Live search** with match highlighting across messages and source labels
+- **Timestamp toggle** for compact or detailed views
+- **Level counters** showing distribution of log entries
+- **Buffer management** keeping the last 200 entries
+
+## Keybindings
+
+- `space` pause/resume log stream
+- `1` toggle errors
+- `2` toggle warnings
+- `3` toggle info
+- `4` toggle debug
+- `/` search mode (type query, `esc`/`enter` to exit)
+- `j` / `k` scroll down/up
+- `G` scroll to bottom (re-enable auto-scroll)
+- `t` toggle timestamps
+- `c` clear all logs

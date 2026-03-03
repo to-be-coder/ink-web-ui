@@ -3,12 +3,12 @@
 import { InkTerminalBox } from "ink-web";
 import "ink-web/css";
 import "xterm/css/xterm.css";
-import { TaskList } from "./TaskList";
+import { StyleSystem } from "./StyleSystem";
 
-export default function TaskListDemoInner() {
+export default function StyleSystemDemoInner() {
   return (
     <InkTerminalBox focus rows={32}>
-      <TaskList />
+      <StyleSystem />
     </InkTerminalBox>
   );
 }

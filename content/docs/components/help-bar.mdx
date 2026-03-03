@@ -1,0 +1,28 @@
+---
+title: Help Bar
+description: Context-aware keybinding help bar inspired by Bubbles' help system with short and expanded modes
+---
+
+## Demo
+
+Click the terminal below. Press `tab` to switch panels, `?` to expand the full help view.
+
+<HelpBarDemo />
+
+## Features
+
+- **Context-aware bindings** that update instantly when focus changes between panels
+- **Short mode** (default): compact single-line display with key-description pairs separated by bullets
+- **Full mode** (press `?`): multi-column layout grouped by category
+- **Panel focus indicators**: double-line border on focused panel, single-line on unfocused
+- **Key styling**: bold primary color for keys, dim color for descriptions
+- **Disabled bindings** auto-hide from the help bar
+- **Separator line** between content and help bar
+
+## Keybindings
+
+- `tab` switch focus between Files and Editor panels
+- `?` toggle expanded help view
+- `j` / `k` or `up` / `down` move cursor in the focused panel
+- Files panel: `enter` open, `d` delete, `/` search, `n` new file, `r` rename
+- Editor panel: `ctrl+s` save, `ctrl+z` undo, `ctrl+f` find, `ctrl+g` goto line

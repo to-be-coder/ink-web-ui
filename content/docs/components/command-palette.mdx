@@ -1,0 +1,31 @@
+---
+title: Command Palette
+description: Command palette with fuzzy search, categorized results, and keyboard shortcuts, inspired by VS Code and kbar
+---
+
+## Demo
+
+Click the terminal below and press `ctrl+k` to open the palette. Type to fuzzy-search across 25 commands.
+
+<CommandPaletteDemo />
+
+## Features
+
+- **Two states:** closed state shows a mock editor with hint, open state shows a modal overlay
+- **Fuzzy search** with scored matching and character-level highlighting in warning color
+- **25 commands** across 5 categories: File, Edit, View, Git, AI
+- **Category badges** with per-category coloring (File=info, Edit=success, View=secondary, Git=warning, AI=primary)
+- **Keyboard shortcut display** right-aligned and dimmed for commands that have bindings
+- **Recently executed** commands appear first when the palette reopens
+- **Execution flash** briefly shows "Executed: [command]" after running a command
+- **Grouped display** shows commands organized by category when the query is empty
+- **Result count** shown at the bottom of the palette
+- **Rounded border** modal centered with decorative box-drawing characters
+
+## Keybindings
+
+- `ctrl+k` open command palette
+- Type to fuzzy-search commands
+- `↑` / `↓` navigate results
+- `enter` execute the selected command
+- `esc` close the palette

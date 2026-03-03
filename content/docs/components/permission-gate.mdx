@@ -1,0 +1,27 @@
+---
+title: Permission Gate
+description: Human-in-the-loop approval interface for AI agent actions with risk assessment
+---
+
+## Demo
+
+Click the terminal below and press `space` to trigger permission requests. Approve with `y`, deny with `n`, or always-allow with `a`.
+
+<PermissionGateDemo />
+
+## Features
+
+- **Action type badges** for file edits, file creation, shell commands, API calls, and deletions
+- **Risk level indicators** from low to critical with color-coded severity
+- **Three approval modes**: allow once, deny, or always-allow for a given action type
+- **Decision history** showing past approvals and denials
+- **Realistic demo scenarios** including destructive operations like force push and .env modification
+
+## Keybindings
+
+- `space` trigger next permission request
+- `y` allow action
+- `n` deny action
+- `a` always allow this action type
+- `tab` toggle decision history
+- `r` reset all decisions

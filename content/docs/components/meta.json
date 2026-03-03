@@ -1,4 +1,31 @@
 {
   "title": "Components",
-  "pages": ["task-list"]
+  "pages": [
+    "style-system",
+    "form-builder",
+    "spring-animation",
+    "viewport",
+    "split-panes",
+    "data-table",
+    "fuzzy-finder",
+    "modal",
+    "command-palette",
+    "tabs",
+    "tree-view",
+    "charts",
+    "help-bar",
+    "streaming-chat",
+    "agent-workflow",
+    "diff-viewer",
+    "permission-gate",
+    "code-block",
+    "log-viewer",
+    "markdown-renderer",
+    "token-usage",
+    "multi-select",
+    "task-list",
+    "pomodoro-timer",
+    "voice-recognition",
+    "system-monitor"
+  ]
 }

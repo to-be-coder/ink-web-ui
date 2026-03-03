@@ -1,0 +1,28 @@
+---
+title: Diff Viewer
+description: Review AI-generated code changes with hunk-level accept and reject controls
+---
+
+## Demo
+
+Click the terminal below to navigate the diff. Use `[` and `]` to move between hunks, `a` to accept, `x` to reject.
+
+<DiffViewerDemo />
+
+## Features
+
+- **Unified diff format** with color-coded additions and deletions
+- **Hunk-level review** with accept/reject controls for granular change management
+- **Multi-file tabs** to navigate between changed files
+- **Line numbers** for both old and new file versions
+- **Scroll support** for diffs longer than the visible area
+- **Status tracking** showing accepted, rejected, and pending hunks
+
+## Keybindings
+
+- `j` / `k` scroll up/down
+- `[` / `]` previous/next hunk
+- `a` accept current hunk
+- `x` reject current hunk
+- `tab` next file
+- `r` reset all decisions
