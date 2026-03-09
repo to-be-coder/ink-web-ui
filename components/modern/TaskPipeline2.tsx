@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Text, useInput } from 'ink-web'
+import { Box, Text, useInput, useStdout } from 'ink-web'
 import { useTheme } from '../theme'
-import { Card, HelpFooter, Badge, blendHex } from './utils'
+import { HelpFooter, Badge } from './utils'
 
 /* ── Types ── */
 
@@ -86,6 +86,7 @@ const INITIAL_TASKS: Task[] = [
 
 export function ModernTaskPipeline2() {
   const colors = useTheme()
+  const { stdout } = useStdout()
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS)
   const [frame, setFrame] = useState(0)
   const [elapsed, setElapsed] = useState(0)
@@ -95,15 +96,18 @@ export function ModernTaskPipeline2() {
   const mountedRef = useRef(true)
   const [paused, setPaused] = useState(false)
   const [ready, setReady] = useState(false)
-
   const allFinished = tasks.every(t => t.status === 'done' || t.status === 'error')
 
   useEffect(() => {
     mountedRef.current = true
-    // Delay first render to avoid ghost content from yoga layout race
+    // Wait for terminal to be fully sized (xterm fires onReady at ~200ms)
+    // then clear buffer to wipe any ghost content from pre-sized renders
     const id = setTimeout(() => {
-      if (mountedRef.current) setReady(true)
-    }, 50)
+      if (mountedRef.current) {
+        stdout.write('\x1b[2J\x1b[H')
+        setReady(true)
+      }
+    }, 300)
     return () => {
       mountedRef.current = false
       clearTimeout(id)
@@ -152,17 +156,15 @@ export function ModernTaskPipeline2() {
     if (ch === 'd') setExpanded(e => !e)
   })
 
-  if (!ready) return <Box><Text> </Text></Box>
+  if (!ready) return <Box />
 
   const doneCount = tasks.filter(t => t.status === 'done').length
   const errCount = tasks.filter(t => t.status === 'error').length
   const allDone = allFinished
   const statusColor = errCount > 0 ? colors.error : allDone ? colors.success : colors.info
-  const pct = (doneCount + errCount) / tasks.length
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Card>
         <Box justifyContent="space-between" marginBottom={1}>
           <Box gap={1}>
             <Text bold color={colors.primary}>Agent Task</Text>
@@ -229,7 +231,6 @@ export function ModernTaskPipeline2() {
           { key: 'space', label: paused ? 'resume' : 'pause' },
           { key: 'r', label: 'restart' },
         ]} />
-      </Card>
     </Box>
   )
 }

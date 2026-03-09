@@ -1,6 +1,7 @@
 {
   "title": "Clean",
   "pages": [
+    "chat-flow",
     "context-window",
     "data-table",
     "diff-viewer",

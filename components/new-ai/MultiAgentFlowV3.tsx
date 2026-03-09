@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Text, useInput } from 'ink-web'
+import { Box, Text, useInput, useStdout } from 'ink-web'
 import { useTheme } from '../theme'
 import { Help, blendHex } from './utils'
 
@@ -120,10 +120,12 @@ function buildTimeline(): TimelineEvent[] {
 
 export function NewAIMultiAgentFlowV3() {
   const colors = useTheme()
+  const { stdout } = useStdout()
   const [runId, setRunId] = useState(0)
   const [frame, setFrame] = useState(0)
   const [expanded, setExpanded] = useState(true)
   const mountedRef = useRef(true)
+  const [ready, setReady] = useState(false)
 
   // Track status: [phaseIdx][laneIdx][stepIdx] => status
   const [statuses, setStatuses] = useState<('pending' | 'running' | 'done')[][][]>(() =>
@@ -132,7 +134,16 @@ export function NewAIMultiAgentFlowV3() {
 
   useEffect(() => {
     mountedRef.current = true
-    return () => { mountedRef.current = false }
+    const id = setTimeout(() => {
+      if (mountedRef.current) {
+        stdout.write('\x1b[2J\x1b[H')
+        setReady(true)
+      }
+    }, 300)
+    return () => {
+      mountedRef.current = false
+      clearTimeout(id)
+    }
   }, [])
 
   // Spinner frame
@@ -186,6 +197,8 @@ export function NewAIMultiAgentFlowV3() {
     if (key.return || ch === ' ') setExpanded(e => !e)
     if (ch === 'r') setRunId(n => n + 1)
   })
+
+  if (!ready) return <Box />
 
   const spin = FILL_FRAMES[frame % FILL_FRAMES.length]
 

@@ -1,0 +1,27 @@
+---
+title: Message Bubble V6
+description: Modern minimal chat with dark bubble backgrounds, toggleable thinking, and clean typography.
+---
+
+<AIMessageBubbleV6Demo />
+
+## Features
+- Clean two-tone layout — plain text prompts, dark bubble responses
+- User messages as minimal `>` prompts
+- Assistant replies in dark background bubbles with generous padding
+- Toggleable thinking — collapsed shows duration only, expanded shows full reasoning
+- Thinking spinner animates during streaming
+- Inline code with slightly brighter background inside bubbles
+- Indented code lines highlighted in secondary color
+- Subtle footer metadata (model, token count) below each bubble
+- Streaming cursor inside the bubble
+
+## Design
+- No headers or role labels cluttering the bubbles — the background *is* the role indicator
+- Single dark background (`#141422`) for all assistant messages — no per-role color confusion
+- Whitespace-driven hierarchy instead of borders or separators
+- Thinking displayed as a separate layer above the bubble, not inside it
+
+## Keybindings
+- `d` — Toggle thinking visibility
+- `r` — Replay animation

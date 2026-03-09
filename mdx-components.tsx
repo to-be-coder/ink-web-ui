@@ -6,6 +6,9 @@ import { PomodoroTimerDemo } from './components/PomodoroTimerDemo';
 import { AgentWorkflowDemo } from './components/AgentWorkflowDemo';
 import { TokenUsageDemo } from './components/TokenUsageDemo';
 import { DiffViewerDemo } from './components/DiffViewerDemo';
+import { DiffViewerSplitDemo } from './components/DiffViewerSplitDemo';
+import { DiffViewerMinimalDemo } from './components/DiffViewerMinimalDemo';
+import { DiffViewerGitDemo } from './components/DiffViewerGitDemo';
 import { LogViewerDemo } from './components/LogViewerDemo';
 import { MarkdownRendererDemo } from './components/MarkdownRendererDemo';
 import { TreeViewDemo } from './components/TreeViewDemo';
@@ -38,7 +41,10 @@ import { StopwatchDemo } from './components/StopwatchDemo';
 import { SplashDemo } from './components/SplashDemo';
 import { SpaceDemo } from './components/SpaceDemo';
 import { PackageManagerDemo } from './components/PackageManagerDemo';
+import { ChatFlowDemo } from './components/ChatFlowDemo';
+import { CodeReviewDemo } from './components/CodeReviewDemo';
 import { ColorPickerDemo } from './components/ColorPickerDemo';
+import { ModelBenchmarkDemo } from './components/ModelBenchmarkDemo';
 import { ModernFormBuilderDemo } from './components/modern/FormBuilderDemo';
 import { ModernTaskPipeline2Demo } from './components/modern/TaskPipeline2Demo';
 import { ModernProgressDemo } from './components/modern/ProgressDemo';
@@ -58,6 +64,11 @@ import { ModernContextWindowDemo } from './components/modern/ContextWindowDemo';
 import { ModernPermissionPromptDemo } from './components/modern/PermissionPromptDemo';
 import { ModernDiffViewerDemo } from './components/modern/DiffViewerDemo';
 import { AIMessageBubbleDemo } from './components/ai/MessageBubbleDemo';
+import { AIMessageBubbleV2Demo } from './components/ai/MessageBubbleV2Demo';
+import { AIMessageBubbleV3Demo } from './components/ai/MessageBubbleV3Demo';
+import { AIMessageBubbleV4Demo } from './components/ai/MessageBubbleV4Demo';
+import { AIMessageBubbleV5Demo } from './components/ai/MessageBubbleV5Demo';
+import { AIMessageBubbleV6Demo } from './components/ai/MessageBubbleV6Demo';
 import { AIThinkingIndicatorDemo } from './components/ai/ThinkingIndicatorDemo';
 import { AIToolCallBlockDemo } from './components/ai/ToolCallBlockDemo';
 import { AICodeBlockDemo } from './components/ai/CodeBlockDemo';
@@ -109,6 +120,7 @@ import { CleanStreamingChatDemo } from './components/clean/StreamingChatDemo';
 import { CleanContextWindowDemo } from './components/clean/ContextWindowDemo';
 import { CleanPermissionPromptDemo } from './components/clean/PermissionPromptDemo';
 import { CleanDiffViewerDemo } from './components/clean/DiffViewerDemo';
+import { ChatFlowCleanDemo } from './components/ChatFlowCleanDemo';
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -119,6 +131,9 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     AgentWorkflowDemo,
     TokenUsageDemo,
     DiffViewerDemo,
+    DiffViewerSplitDemo,
+    DiffViewerMinimalDemo,
+    DiffViewerGitDemo,
     LogViewerDemo,
     MarkdownRendererDemo,
     TreeViewDemo,
@@ -151,7 +166,10 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
 SplashDemo,
     SpaceDemo,
     PackageManagerDemo,
+    ChatFlowDemo,
+    CodeReviewDemo,
     ColorPickerDemo,
+    ModelBenchmarkDemo,
     ModernFormBuilderDemo,
     ModernTaskPipeline2Demo,
     ModernProgressDemo,
@@ -171,6 +189,11 @@ SplashDemo,
     ModernPermissionPromptDemo,
     ModernDiffViewerDemo,
     AIMessageBubbleDemo,
+    AIMessageBubbleV2Demo,
+    AIMessageBubbleV3Demo,
+    AIMessageBubbleV4Demo,
+    AIMessageBubbleV5Demo,
+    AIMessageBubbleV6Demo,
     AIThinkingIndicatorDemo,
     AIToolCallBlockDemo,
     AICodeBlockDemo,
@@ -222,6 +245,7 @@ SplashDemo,
     CleanContextWindowDemo,
     CleanPermissionPromptDemo,
     CleanDiffViewerDemo,
+    ChatFlowCleanDemo,
     ...components,
   };
 }
