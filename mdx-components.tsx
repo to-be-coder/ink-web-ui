@@ -40,7 +40,6 @@ import { SpaceDemo } from './components/SpaceDemo';
 import { PackageManagerDemo } from './components/PackageManagerDemo';
 import { ColorPickerDemo } from './components/ColorPickerDemo';
 import { ModernFormBuilderDemo } from './components/modern/FormBuilderDemo';
-import { ModernTaskPipelineDemo } from './components/modern/TaskPipelineDemo';
 import { ModernTaskPipeline2Demo } from './components/modern/TaskPipeline2Demo';
 import { ModernProgressDemo } from './components/modern/ProgressDemo';
 import { ModernTextInputDemo } from './components/modern/TextInputDemo';
@@ -154,7 +153,6 @@ SplashDemo,
     PackageManagerDemo,
     ColorPickerDemo,
     ModernFormBuilderDemo,
-    ModernTaskPipelineDemo,
     ModernTaskPipeline2Demo,
     ModernProgressDemo,
     ModernTextInputDemo,
