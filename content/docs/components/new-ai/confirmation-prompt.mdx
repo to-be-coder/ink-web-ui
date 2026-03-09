@@ -1,0 +1,26 @@
+---
+title: Confirmation Prompt
+description: Human-in-the-loop approval flow for agent tool calls with risk assessment.
+---
+## Demo
+<NewAIConfirmationPromptDemo />
+
+## Features
+- Pending action queue with approve/deny controls
+- Risk level indicators: low (◇), medium (◆), high (▲)
+- Tool type badges with semantic coloring
+- Status tracking: pending (spinner), approved (✓), denied (✗), auto-approved (⚡)
+- Expandable action details
+- High-risk warnings for destructive operations
+- Batch approval ("approve all") capability
+
+## Keybindings
+- `j` / `k` — Navigate actions
+- `y` — Approve selected action
+- `n` — Deny selected action
+- `a` — Approve all pending
+- `⏎` — Toggle action details
+- `r` — Reset demo
+
+## Research Context
+Inspired by **Vercel AI Elements** (`Confirmation` component with accepted/rejected/request states), **CopilotKit** (CoAgents human-in-the-loop), and **assistant-ui** (approval workflows). Human-in-the-loop is a critical pattern for agentic AI — risk assessment is a novel addition.

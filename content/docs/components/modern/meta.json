@@ -1,0 +1,24 @@
+{
+  "title": "Modern",
+  "pages": [
+    "context-window",
+    "data-table",
+    "diff-viewer",
+    "form-builder",
+    "list",
+    "multi-select",
+    "paginator",
+    "permission-prompt",
+    "progress",
+    "select",
+    "stopwatch",
+    "streaming-chat",
+    "tabs",
+    "task-pipeline",
+    "task-pipeline-2",
+    "text-area",
+    "text-input",
+    "timer",
+    "tool-call"
+  ]
+}

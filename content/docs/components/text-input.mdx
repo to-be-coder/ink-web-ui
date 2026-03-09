@@ -1,0 +1,30 @@
+---
+title: TextInput
+description: Single-line text input with cursor, echo modes, and autocomplete suggestions, inspired by Charm's bubbles/textinput
+---
+
+## Demo
+
+Click the terminal below to focus it.
+
+<TextInputDemo />
+
+## Features
+
+- **Multiple echo modes** — normal text, password masking, and hidden input
+- **Blinking cursor** — virtual cursor with 530ms blink interval
+- **Character limit** — configurable per-field limit with counter display
+- **Autocomplete suggestions** — prefix-matched suggestions shown inline in gray
+- **Word-level navigation** — ctrl+left/right to jump between words
+- **Kill line** — ctrl+k deletes to end, ctrl+u deletes to start
+- **Multi-field form** — tab/arrow keys to navigate between fields
+
+## Keybindings
+
+- `↑↓` / `tab` switch between fields
+- `←→` move cursor
+- `ctrl+←→` word navigation
+- `tab` accept suggestion
+- `ctrl+k` delete to end of line
+- `ctrl+u` delete to start of line
+- `backspace` delete character

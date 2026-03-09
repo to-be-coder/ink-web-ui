@@ -1,0 +1,33 @@
+---
+title: Intro
+description: Animated ASCII art product title that fades in and slides from the top to the center of the terminal
+---
+
+## Demo
+
+Click the terminal below. The INK WEB title animates in with a vertical slide and color fade. Press `r` to replay.
+
+<IntroDemo />
+
+## Features
+
+- **ASCII art title** rendered in large block letters
+- **Vertical slide** from top to center using quintic easing
+- **Color fade** from background dark to theme primary color
+- **Character-by-character reveal** sweeping left to right, staggered per line
+- **Subtitle fade-in** delayed after the main title animation
+- **Shadow depth** effect using secondary theme color
+
+## Keybindings
+
+- `r` replay the animation
+
+## Animation Details
+
+| Property | Value |
+|----------|-------|
+| Duration | 2200ms |
+| Position easing | easeOutQuint |
+| Color easing | easeOutCubic |
+| Subtitle delay | 70% progress |
+| Character reveal | Left-to-right sweep, 2-char stagger per line |

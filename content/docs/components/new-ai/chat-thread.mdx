@@ -1,0 +1,26 @@
+---
+title: Chat Thread
+description: Full conversation thread with parts-based messages, collapsible reasoning and tool calls.
+---
+## V1
+Badge header, diamond role icons, token counts and model attribution.
+<NewAIChatThreadDemo />
+
+## V2 — Clean
+Parts-based messages with collapsible reasoning and tool calls. Minimal dot indicators and vertical connectors.
+<NewAIChatThreadV2Demo />
+
+## V3 — Modern
+Left accent bar colored by role and part type. Tool calls get their own colored bar segment. Compact header with token summary.
+<NewAIChatThreadV3Demo />
+
+## Message Parts
+- **Text** — AI reply, always visible
+- **Reasoning** — Thinking trace, collapsed by default, shows "Thought for Xs"
+- **Tool Call** — File reads, searches, edits. Collapsed by default with status icon
+- **Code** — Syntax-highlighted code block with line numbers and file path
+- **Source** — Citation references, inline compact
+
+## Keybindings
+- `j` / `k` — Navigate between message parts
+- `enter` / `space` — Toggle collapse on reasoning and tool calls

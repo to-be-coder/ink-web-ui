@@ -2,13 +2,12 @@ import { useReducer } from 'react'
 import { Box, Text, useInput } from 'ink-web'
 import { useTheme } from './theme'
 
-// ── Types ────────────────────────────────────────────────────────────
+/* ── Types ── */
 
 interface Keybinding {
   key: string
   description: string
-  group?: string
-  disabled?: boolean
+  group: string
 }
 
 type PanelId = 'files' | 'editor'
@@ -50,7 +49,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-// ── Demo data ────────────────────────────────────────────────────────
+/* ── Demo data ── */
 
 const FILES: FileEntry[] = [
   { name: 'src/', type: 'folder' },
@@ -86,61 +85,53 @@ const EDITOR_LINES = [
   '}',
 ]
 
-const FILES_KEYBINDINGS: Keybinding[] = [
+const FILE_BINDINGS: Keybinding[] = [
   { key: 'enter', description: 'open', group: 'Navigation' },
-  { key: 'd', description: 'delete', group: 'Actions' },
   { key: '/', description: 'search', group: 'Navigation' },
   { key: 'n', description: 'new file', group: 'Actions' },
   { key: 'r', description: 'rename', group: 'Actions' },
+  { key: 'd', description: 'delete', group: 'Actions' },
 ]
 
-const EDITOR_KEYBINDINGS: Keybinding[] = [
+const EDITOR_BINDINGS: Keybinding[] = [
   { key: 'ctrl+s', description: 'save', group: 'File' },
   { key: 'ctrl+z', description: 'undo', group: 'Edit' },
   { key: 'ctrl+f', description: 'find', group: 'Edit' },
   { key: 'ctrl+g', description: 'goto line', group: 'Navigation' },
 ]
 
-// ── Sub-components ───────────────────────────────────────────────────
+/* ── Sub-components ── */
 
 function FilePanel({ files, cursor, focused }: { files: FileEntry[]; cursor: number; focused: boolean }) {
   const colors = useTheme()
-  const borderChar = focused ? '║' : '│'
-  const hChar = focused ? '═' : '─'
-  const tl = focused ? '╔' : '┌'
-  const tr = focused ? '╗' : '┐'
-  const bl = focused ? '╚' : '└'
-  const br = focused ? '╝' : '┘'
-  const panelWidth = 22
 
   return (
-    <Box flexDirection="column">
-      <Text color={focused ? colors.primary : 'gray'}>
-        {tl}{hChar} Files {hChar.repeat(panelWidth - 8)}{tr}
-      </Text>
+    <Box
+      flexDirection="column"
+      borderStyle={focused ? 'double' : 'single'}
+      borderColor={focused ? colors.primary : 'gray'}
+      flexBasis={24}
+      flexShrink={1}
+      overflow="hidden"
+    >
+      <Text bold color={focused ? colors.primary : 'gray'}>Files</Text>
       {files.map((f, i) => {
         const isActive = i === cursor && focused
         const icon = f.type === 'folder' ? '/' : ' '
         const name = `${icon}${f.name}`
-        const padded = name.padEnd(panelWidth)
 
         return (
-          <Box key={f.name}>
-            <Text color={focused ? colors.primary : 'gray'}>{borderChar}</Text>
-            <Text
-              color={isActive ? 'black' : f.type === 'folder' ? colors.info : undefined}
-              backgroundColor={isActive ? colors.primary : undefined}
-              bold={isActive || f.type === 'folder'}
-            >
-              {padded}
-            </Text>
-            <Text color={focused ? colors.primary : 'gray'}>{borderChar}</Text>
-          </Box>
+          <Text
+            key={f.name}
+            wrap="truncate-end"
+            color={isActive ? 'black' : f.type === 'folder' ? colors.info : undefined}
+            backgroundColor={isActive ? colors.primary : undefined}
+            bold={isActive || f.type === 'folder'}
+          >
+            {name}
+          </Text>
         )
       })}
-      <Text color={focused ? colors.primary : 'gray'}>
-        {bl}{hChar.repeat(panelWidth)}{br}
-      </Text>
     </Box>
   )
 }
@@ -157,55 +148,39 @@ function EditorPanel({
   height: number
 }) {
   const colors = useTheme()
-  const borderChar = focused ? '║' : '│'
-  const hChar = focused ? '═' : '─'
-  const tl = focused ? '╔' : '┌'
-  const tr = focused ? '╗' : '┐'
-  const bl = focused ? '╚' : '└'
-  const br = focused ? '╝' : '┘'
-  const contentWidth = 42
-
   const visibleLines = lines.slice(0, height)
 
   return (
-    <Box flexDirection="column">
-      <Text color={focused ? colors.primary : 'gray'}>
-        {tl}{hChar} Editor {hChar.repeat(contentWidth - 9)}{tr}
-      </Text>
+    <Box
+      flexDirection="column"
+      borderStyle={focused ? 'double' : 'single'}
+      borderColor={focused ? colors.primary : 'gray'}
+      flexGrow={1}
+      overflow="hidden"
+    >
+      <Text bold color={focused ? colors.primary : 'gray'}>Editor</Text>
       {visibleLines.map((line, i) => {
         const isActive = i === cursorLine && focused
-        const lineNum = String(i + 1).padStart(2, ' ')
-        const content = line.slice(0, contentWidth - 4)
-        const padded = content.padEnd(contentWidth - 4)
+        const num = String(i + 1).padStart(2, ' ')
 
         return (
-          <Box key={i}>
-            <Text color={focused ? colors.primary : 'gray'}>{borderChar}</Text>
-            <Text dimColor>{lineNum} </Text>
-            <Text
-              color={isActive ? colors.primary : undefined}
-              bold={isActive}
-            >
-              {padded}
+          <Text key={i} wrap="truncate-end">
+            <Text dimColor>{num} </Text>
+            <Text color={isActive ? colors.primary : undefined} bold={isActive}>
+              {line}
             </Text>
-            <Text color={focused ? colors.primary : 'gray'}> {borderChar}</Text>
-          </Box>
+          </Text>
         )
       })}
-      <Text color={focused ? colors.primary : 'gray'}>
-        {bl}{hChar.repeat(contentWidth)}{br}
-      </Text>
     </Box>
   )
 }
 
-function HelpBarShort({ bindings }: { bindings: Keybinding[] }) {
+function ShortHelp({ bindings }: { bindings: Keybinding[] }) {
   const colors = useTheme()
-  const active = bindings.filter(b => !b.disabled)
-
   return (
     <Box gap={0}>
-      {active.map((b, i) => (
+      {bindings.map((b, i) => (
         <Box key={b.key} gap={0}>
           {i > 0 && <Text dimColor> {'\u2022'} </Text>}
           <Text bold color={colors.primary}>{b.key}</Text>
@@ -219,31 +194,26 @@ function HelpBarShort({ bindings }: { bindings: Keybinding[] }) {
   )
 }
 
-function HelpBarFull({ bindings, panelLabel }: { bindings: Keybinding[]; panelLabel: string }) {
+function FullHelp({ bindings, label }: { bindings: Keybinding[]; label: string }) {
   const colors = useTheme()
-  const active = bindings.filter(b => !b.disabled)
 
-  // Group by group name
   const groups: Record<string, Keybinding[]> = {}
-  for (const b of active) {
-    const g = b.group ?? 'General'
-    if (!groups[g]) groups[g] = []
-    groups[g]!.push(b)
+  for (const b of bindings) {
+    if (!groups[b.group]) groups[b.group] = []
+    groups[b.group]!.push(b)
   }
-
-  const groupEntries = Object.entries(groups)
 
   return (
     <Box flexDirection="column">
       <Box marginBottom={0} gap={1}>
         <Text bold color={colors.primary}>Keybindings</Text>
-        <Text dimColor>({panelLabel} panel)</Text>
+        <Text dimColor>({label} panel)</Text>
         <Box flexGrow={1} />
         <Text bold color={colors.primary}>?</Text>
         <Text dimColor> close</Text>
       </Box>
       <Box gap={4}>
-        {groupEntries.map(([group, items]) => (
+        {Object.entries(groups).map(([group, items]) => (
           <Box key={group} flexDirection="column">
             <Text bold color={colors.secondary}>{group}</Text>
             {items.map(b => (
@@ -261,7 +231,7 @@ function HelpBarFull({ bindings, panelLabel }: { bindings: Keybinding[]; panelLa
   )
 }
 
-// ── Main component ───────────────────────────────────────────────────
+/* ── Main ── */
 
 export function HelpBar() {
   const colors = useTheme()
@@ -273,24 +243,13 @@ export function HelpBar() {
   })
 
   const { focusedPanel, helpExpanded, fileCursor, editorCursorLine } = state
-
-  const currentBindings = focusedPanel === 'files' ? FILES_KEYBINDINGS : EDITOR_KEYBINDINGS
+  const bindings = focusedPanel === 'files' ? FILE_BINDINGS : EDITOR_BINDINGS
   const panelLabel = focusedPanel === 'files' ? 'Files' : 'Editor'
 
   useInput((ch, key) => {
-    // Global: toggle help
-    if (ch === '?') {
-      dispatch({ type: 'toggle_help' })
-      return
-    }
+    if (ch === '?') { dispatch({ type: 'toggle_help' }); return }
+    if (key.tab) { dispatch({ type: 'switch_panel' }); return }
 
-    // Global: switch panel
-    if (key.tab) {
-      dispatch({ type: 'switch_panel' })
-      return
-    }
-
-    // Panel-specific navigation
     if (focusedPanel === 'files') {
       if (key.upArrow || ch === 'k') dispatch({ type: 'file_up' })
       else if (key.downArrow || ch === 'j') dispatch({ type: 'file_down', max: FILES.length })
@@ -299,8 +258,6 @@ export function HelpBar() {
       else if (key.downArrow || ch === 'j') dispatch({ type: 'editor_down', max: EDITOR_LINES.length })
     }
   })
-
-  const editorHeight = FILES.length
 
   return (
     <Box flexDirection="column" paddingX={1}>
@@ -315,17 +272,14 @@ export function HelpBar() {
       {/* Panels */}
       <Box gap={1}>
         <FilePanel files={FILES} cursor={fileCursor} focused={focusedPanel === 'files'} />
-        <EditorPanel lines={EDITOR_LINES} cursorLine={editorCursorLine} focused={focusedPanel === 'editor'} height={editorHeight} />
+        <EditorPanel lines={EDITOR_LINES} cursorLine={editorCursorLine} focused={focusedPanel === 'editor'} height={FILES.length} />
       </Box>
-
-      {/* Separator */}
-      <Text dimColor>{'─'.repeat(67)}</Text>
 
       {/* Help bar */}
       {helpExpanded ? (
-        <HelpBarFull bindings={currentBindings} panelLabel={panelLabel} />
+        <FullHelp bindings={bindings} label={panelLabel} />
       ) : (
-        <HelpBarShort bindings={currentBindings} />
+        <ShortHelp bindings={bindings} />
       )}
     </Box>
   )

@@ -4,8 +4,6 @@ import { useTheme } from './theme'
 
 // ── Field types ──────────────────────────────────────────────────────
 
-type FieldType = 'select' | 'input' | 'multiselect' | 'confirm' | 'note'
-
 interface SelectOption {
   label: string
   value: string
@@ -200,11 +198,11 @@ const GROUPS: Group[] = [
         id: 'service_name',
         type: 'input',
         label: 'Service Name',
-        description: 'Unique name for this service (required, no spaces)',
+        description: 'Unique name for this service (no spaces)',
         placeholder: 'my-service',
         validate: (value: string) => {
           if (!value.trim()) return 'Service name is required'
-          if (/\s/.test(value)) return 'Service name cannot contain spaces'
+          if (/\s/.test(value)) return 'Cannot contain spaces'
           return null
         },
       },
@@ -236,7 +234,7 @@ const GROUPS: Group[] = [
         validate: (value: string) => {
           if (!value.trim()) return 'Replicas is required'
           const n = parseInt(value, 10)
-          if (isNaN(n) || n < 1 || n > 10) return 'Must be a number between 1 and 10'
+          if (isNaN(n) || n < 1 || n > 10) return 'Must be between 1 and 10'
           return null
         },
       },
@@ -251,16 +249,16 @@ const GROUPS: Group[] = [
         label: 'Deploy Summary',
         description: 'Review your selections',
         render: (values: Record<string, unknown>) => {
-          const lines: string[] = []
           const env = values['environment'] as string | undefined
-          lines.push(`  Environment:  ${env ?? 'not set'}`)
           const name = values['service_name'] as string | undefined
-          lines.push(`  Service Name: ${name || 'not set'}`)
           const features = values['features'] as Set<string> | undefined
-          lines.push(`  Features:     ${features && features.size > 0 ? [...features].join(', ') : 'none'}`)
           const replicas = values['replicas'] as string | undefined
-          lines.push(`  Replicas:     ${replicas || 'not set'}`)
-          return lines
+          return [
+            `Environment:  ${env ?? 'not set'}`,
+            `Service Name: ${name || 'not set'}`,
+            `Features:     ${features && features.size > 0 ? [...features].join(', ') : 'none'}`,
+            `Replicas:     ${replicas || 'not set'}`,
+          ]
         },
       },
       {
@@ -300,76 +298,104 @@ function collectValues(fieldStates: Record<string, FieldState>): Record<string, 
   return values
 }
 
-// ── Sub-components ───────────────────────────────────────────────────
+// ── Guide bar primitives (clack-inspired) ────────────────────────────
 
-function ProgressBar({ current, total }: { current: number; total: number }) {
+type BarSymbol = 'active' | 'done' | 'pending' | 'error' | 'bar'
+
+function GBar({ kind, color }: { kind: BarSymbol; color?: string }) {
   const colors = useTheme()
-  const dots = Array.from({ length: total }, (_, i) => i)
-  return (
-    <Box gap={1}>
-      <Text dimColor>Step {current + 1}/{total}</Text>
-      <Box>
-        {dots.map(i => (
-          <Text key={i} color={i === current ? colors.primary : i < current ? colors.success : 'gray'}>
-            {i === current ? '●' : i < current ? '●' : '○'}
-          </Text>
-        ))}
-      </Box>
-    </Box>
-  )
+  const symbols: Record<BarSymbol, string> = {
+    active: '\u25C6',  // ◆
+    done: '\u25C7',    // ◇
+    pending: '\u25CB',  // ○
+    error: '\u25B2',   // ▲
+    bar: '\u2502',     // │
+  }
+  const symColors: Record<BarSymbol, string> = {
+    active: colors.primary,
+    done: colors.success,
+    pending: 'gray',
+    error: colors.warning,
+    bar: 'gray',
+  }
+  return <Text color={color ?? symColors[kind]}>{symbols[kind]}  </Text>
 }
 
-function SelectFieldView({ field, fs, active }: { field: SelectField; fs: FieldState; active: boolean }) {
+// ── Field views ──────────────────────────────────────────────────────
+
+function SelectFieldView({
+  field, fs, symbol,
+}: {
+  field: SelectField; fs: FieldState; symbol: BarSymbol
+}) {
   const colors = useTheme()
+  const active = symbol === 'active'
+
   return (
     <Box flexDirection="column">
-      <Box gap={1}>
-        <Text color={active ? colors.primary : 'gray'}>{active ? '❯' : ' '}</Text>
-        <Text bold={active}>{field.label}</Text>
-        {field.description && <Text dimColor>{field.description}</Text>}
+      <Box>
+        <GBar kind={symbol} />
+        <Text bold={active} color={active ? colors.primary : undefined}>{field.label}</Text>
+        {field.description && !active && <Text dimColor>  {field.options[fs.selectIndex]?.label}</Text>}
       </Box>
-      {active ? (
-        <Box flexDirection="column" marginLeft={3}>
-          {field.options.map((opt, i) => {
-            const isSelected = i === fs.selectIndex
-            return (
-              <Box key={opt.value} gap={1}>
-                <Text color={isSelected ? colors.primary : 'gray'}>{isSelected ? '❯' : ' '}</Text>
-                <Text color={isSelected ? colors.primary : 'gray'}>{isSelected ? '◉' : '◯'}</Text>
-                <Text color={isSelected ? colors.primary : undefined} bold={isSelected}>{opt.label}</Text>
-              </Box>
-            )
-          })}
-        </Box>
-      ) : (
-        <Box marginLeft={3} gap={1}>
-          <Text dimColor>Selected:</Text>
-          <Text>{field.options[fs.selectIndex]?.label ?? 'none'}</Text>
+      {active && field.description && (
+        <Box>
+          <GBar kind="bar" color={colors.primary} />
+          <Text dimColor>{field.description}</Text>
         </Box>
       )}
+      {active && field.options.map((opt, i) => {
+        const sel = i === fs.selectIndex
+        return (
+          <Box key={opt.value}>
+            <GBar kind="bar" color={colors.primary} />
+            <Text color={sel ? colors.primary : 'gray'}>
+              {sel ? '\u276F \u25C9' : '  \u25EF'} </Text>
+            <Text color={sel ? colors.primary : undefined} bold={sel}>{opt.label}</Text>
+          </Box>
+        )
+      })}
     </Box>
   )
 }
 
-function InputFieldView({ field, fs, active }: { field: InputField; fs: FieldState; active: boolean }) {
+function InputFieldView({
+  field, fs, symbol,
+}: {
+  field: InputField; fs: FieldState; symbol: BarSymbol
+}) {
   const colors = useTheme()
-  const displayValue = fs.inputValue || (active ? '' : field.placeholder ?? '')
+  const active = symbol === 'active'
+  const hasError = symbol === 'error'
+
   return (
     <Box flexDirection="column">
-      <Box gap={1}>
-        <Text color={active ? colors.primary : 'gray'}>{active ? '❯' : ' '}</Text>
-        <Text bold={active}>{field.label}</Text>
-        {field.description && <Text dimColor>{field.description}</Text>}
-      </Box>
-      <Box marginLeft={3} gap={1}>
-        <Text color={active ? colors.primary : 'gray'}>{'>'}</Text>
-        <Text color={!fs.inputValue && !active ? 'gray' : undefined}>
-          {displayValue}
+      <Box>
+        <GBar kind={symbol} />
+        <Text bold={active || hasError} color={active ? colors.primary : hasError ? colors.warning : undefined}>
+          {field.label}
         </Text>
-        {active && <Text color="gray">_</Text>}
+        {!active && !hasError && fs.inputValue && <Text dimColor>  {fs.inputValue}</Text>}
       </Box>
-      {fs.error && (
-        <Box marginLeft={3}>
+      {(active || hasError) && field.description && (
+        <Box>
+          <GBar kind="bar" color={hasError ? colors.warning : colors.primary} />
+          <Text dimColor>{field.description}</Text>
+        </Box>
+      )}
+      {(active || hasError) && (
+        <Box>
+          <GBar kind="bar" color={hasError ? colors.warning : colors.primary} />
+          <Text color={colors.primary}>{'\u276F'} </Text>
+          <Text color={!fs.inputValue ? 'gray' : undefined}>
+            {fs.inputValue || field.placeholder || ''}
+          </Text>
+          <Text color="gray">_</Text>
+        </Box>
+      )}
+      {hasError && fs.error && (
+        <Box>
+          <GBar kind="bar" color={colors.warning} />
           <Text color={colors.error}>{fs.error}</Text>
         </Box>
       )}
@@ -377,90 +403,127 @@ function InputFieldView({ field, fs, active }: { field: InputField; fs: FieldSta
   )
 }
 
-function MultiSelectFieldView({ field, fs, active }: { field: MultiSelectField; fs: FieldState; active: boolean }) {
+function MultiSelectFieldView({
+  field, fs, symbol,
+}: {
+  field: MultiSelectField; fs: FieldState; symbol: BarSymbol
+}) {
   const colors = useTheme()
+  const active = symbol === 'active'
+
+  const selectedLabels = field.options
+    .filter(o => fs.multiSelected.has(o.value))
+    .map(o => o.label)
+
   return (
     <Box flexDirection="column">
-      <Box gap={1}>
-        <Text color={active ? colors.primary : 'gray'}>{active ? '❯' : ' '}</Text>
-        <Text bold={active}>{field.label}</Text>
-        {field.description && <Text dimColor>{field.description}</Text>}
+      <Box>
+        <GBar kind={symbol} />
+        <Text bold={active} color={active ? colors.primary : undefined}>{field.label}</Text>
+        {!active && <Text dimColor>  {selectedLabels.length > 0 ? selectedLabels.join(', ') : 'none'}</Text>}
       </Box>
-      {active ? (
-        <Box flexDirection="column" marginLeft={3}>
-          {field.options.map((opt, i) => {
-            const isCursor = i === fs.multiCursor
-            const isChecked = fs.multiSelected.has(opt.value)
-            return (
-              <Box key={opt.value} gap={1}>
-                <Text color={isCursor ? colors.primary : 'gray'}>{isCursor ? '❯' : ' '}</Text>
-                <Text color={isChecked ? colors.success : 'gray'}>{isChecked ? '◉' : '◯'}</Text>
-                <Text color={isCursor ? colors.primary : isChecked ? colors.success : undefined} bold={isCursor}>
-                  {opt.label}
-                </Text>
-              </Box>
-            )
-          })}
-          {field.maxSelections && (
-            <Text dimColor>  {fs.multiSelected.size}/{field.maxSelections} selected</Text>
-          )}
+      {active && field.description && (
+        <Box>
+          <GBar kind="bar" color={colors.primary} />
+          <Text dimColor>{field.description}</Text>
         </Box>
-      ) : (
-        <Box marginLeft={3} gap={1}>
-          <Text dimColor>Selected:</Text>
-          <Text>{fs.multiSelected.size > 0 ? [...fs.multiSelected].join(', ') : 'none'}</Text>
+      )}
+      {active && field.options.map((opt, i) => {
+        const isCursor = i === fs.multiCursor
+        const isChecked = fs.multiSelected.has(opt.value)
+        return (
+          <Box key={opt.value}>
+            <GBar kind="bar" color={colors.primary} />
+            <Text color={isCursor ? colors.primary : 'gray'}>{isCursor ? '\u276F' : ' '} </Text>
+            <Text color={isChecked ? colors.success : 'gray'}>{isChecked ? '\u25A0' : '\u25A1'} </Text>
+            <Text color={isCursor ? colors.primary : isChecked ? colors.success : undefined} bold={isCursor}>
+              {opt.label}
+            </Text>
+          </Box>
+        )
+      })}
+      {active && field.maxSelections && (
+        <Box>
+          <GBar kind="bar" color={colors.primary} />
+          <Text dimColor>  {fs.multiSelected.size}/{field.maxSelections} selected</Text>
         </Box>
       )}
     </Box>
   )
 }
 
-function ConfirmFieldView({ field, fs, active }: { field: ConfirmField; fs: FieldState; active: boolean }) {
+function ConfirmFieldView({
+  field, fs, symbol,
+}: {
+  field: ConfirmField; fs: FieldState; symbol: BarSymbol
+}) {
   const colors = useTheme()
+  const active = symbol === 'active'
+
   return (
     <Box flexDirection="column">
-      <Box gap={1}>
-        <Text color={active ? colors.primary : 'gray'}>{active ? '❯' : ' '}</Text>
-        <Text bold={active}>{field.label}</Text>
-        {field.description && <Text dimColor>{field.description}</Text>}
+      <Box>
+        <GBar kind={symbol} />
+        <Text bold={active} color={active ? colors.primary : undefined}>{field.label}</Text>
+        {!active && <Text dimColor>  {fs.confirmValue ? 'Yes' : 'No'}</Text>}
       </Box>
-      <Box marginLeft={3} gap={2}>
-        <Text
-          color={fs.confirmValue ? colors.success : 'gray'}
-          bold={fs.confirmValue}
-          inverse={active && fs.confirmValue}
-        >
-          {' Yes '}
-        </Text>
-        <Text
-          color={!fs.confirmValue ? colors.error : 'gray'}
-          bold={!fs.confirmValue}
-          inverse={active && !fs.confirmValue}
-        >
-          {' No '}
-        </Text>
-      </Box>
+      {active && field.description && (
+        <Box>
+          <GBar kind="bar" color={colors.primary} />
+          <Text dimColor>{field.description}</Text>
+        </Box>
+      )}
+      {active && (
+        <Box>
+          <GBar kind="bar" color={colors.primary} />
+          <Text
+            color={fs.confirmValue ? colors.success : 'gray'}
+            bold={fs.confirmValue}
+            inverse={fs.confirmValue}
+          >
+            {' Yes '}
+          </Text>
+          <Text> </Text>
+          <Text
+            color={!fs.confirmValue ? colors.error : 'gray'}
+            bold={!fs.confirmValue}
+            inverse={!fs.confirmValue}
+          >
+            {' No '}
+          </Text>
+        </Box>
+      )}
     </Box>
   )
 }
 
-function NoteFieldView({ field, values, active }: { field: NoteField; values: Record<string, unknown>; active: boolean }) {
+function NoteFieldView({
+  field, values, symbol,
+}: {
+  field: NoteField; values: Record<string, unknown>; symbol: BarSymbol
+}) {
   const colors = useTheme()
+  const active = symbol === 'active'
   const lines = field.render(values)
+
   return (
     <Box flexDirection="column">
-      <Box gap={1}>
-        <Text color={active ? colors.primary : 'gray'}>{active ? '❯' : ' '}</Text>
-        <Text bold={active}>{field.label}</Text>
-        {field.description && <Text dimColor>{field.description}</Text>}
+      <Box>
+        <GBar kind={symbol} />
+        <Text bold={active} color={active ? colors.primary : undefined}>{field.label}</Text>
       </Box>
-      <Box flexDirection="column" marginLeft={3} marginY={0}>
-        <Text dimColor>{'┌' + '─'.repeat(36) + '┐'}</Text>
-        {lines.map((line, i) => (
-          <Text key={i} dimColor>{'│'} <Text color={colors.info}>{line.padEnd(34)}</Text>{'│'}</Text>
-        ))}
-        <Text dimColor>{'└' + '─'.repeat(36) + '┘'}</Text>
-      </Box>
+      {field.description && (
+        <Box>
+          <GBar kind="bar" color={active ? colors.primary : undefined} />
+          <Text dimColor>{field.description}</Text>
+        </Box>
+      )}
+      {lines.map((line, i) => (
+        <Box key={i}>
+          <GBar kind="bar" color={active ? colors.primary : undefined} />
+          <Text color={colors.info}>{line}</Text>
+        </Box>
+      ))}
     </Box>
   )
 }
@@ -488,9 +551,7 @@ export function FormBuilder() {
     if (!field) return
     const fs = getFieldState(state, field.id)
 
-    // ── Navigation between fields ──
     if (key.tab && !key.shift) {
-      // Tab goes to next field
       if (fieldIndex < currentGroup.fields.length - 1) {
         dispatch({ type: 'next_field' })
       } else if (groupIndex < GROUPS.length - 1) {
@@ -499,7 +560,6 @@ export function FormBuilder() {
       return
     }
     if (key.tab && key.shift) {
-      // Shift+Tab goes to previous field
       if (fieldIndex > 0) {
         dispatch({ type: 'prev_field' })
       } else if (groupIndex > 0) {
@@ -508,7 +568,6 @@ export function FormBuilder() {
       return
     }
 
-    // ── Field-specific input ──
     switch (field.type) {
       case 'select': {
         const sf = field as SelectField
@@ -517,7 +576,6 @@ export function FormBuilder() {
         } else if (key.downArrow || ch === 'j') {
           dispatch({ type: 'select_down', fieldId: field.id, max: sf.options.length })
         } else if (key.return) {
-          // Advance to next field or group
           if (fieldIndex < currentGroup.fields.length - 1) {
             dispatch({ type: 'next_field' })
           } else if (groupIndex < GROUPS.length - 1) {
@@ -529,7 +587,6 @@ export function FormBuilder() {
       case 'input': {
         const inf = field as InputField
         if (key.return) {
-          // Validate on submit
           if (inf.validate) {
             const error = inf.validate(fs.inputValue)
             if (error) {
@@ -618,50 +675,55 @@ export function FormBuilder() {
   // ── Submitted view ─────────────────────────────────────────────────
 
   if (submitted) {
-    const finalValues = collectValues(fieldStates)
     return (
       <Box flexDirection="column" paddingX={1}>
-        <Box marginBottom={1} gap={1}>
-          <Text color={colors.success}>✔</Text>
-          <Text bold color={colors.success}>Submitted</Text>
-          <Text dimColor>Deploy Configuration</Text>
-        </Box>
+        <Box
+          flexDirection="column"
+          borderStyle="round"
+          borderColor={colors.success}
+          paddingX={2}
+          paddingY={1}
+          overflow="hidden"
+        >
+          <Box marginBottom={1}>
+            <Text color={colors.success} bold>{'\u2714'} Deployed Successfully</Text>
+          </Box>
 
-        <Box flexDirection="column" marginLeft={2}>
-          <Text dimColor>{'─'.repeat(40)}</Text>
           {GROUPS.map(group => (
-            <Box key={group.title} flexDirection="column" marginBottom={1}>
-              <Text bold color={colors.secondary}>{group.title}</Text>
-              {group.fields.map(field => {
-                if (field.type === 'note') return null
-                const fs = getFieldState(state, field.id)
-                let displayValue = ''
-                switch (field.type) {
-                  case 'select':
-                    displayValue = (field as SelectField).options[fs.selectIndex]?.label ?? ''
-                    break
-                  case 'input':
-                    displayValue = fs.inputValue || '(empty)'
-                    break
-                  case 'multiselect':
-                    displayValue = fs.multiSelected.size > 0
-                      ? [...fs.multiSelected].join(', ')
-                      : '(none)'
-                    break
-                  case 'confirm':
-                    displayValue = fs.confirmValue ? 'Yes' : 'No'
-                    break
-                }
-                return (
-                  <Box key={field.id} gap={1} marginLeft={1}>
-                    <Text dimColor>{field.label}:</Text>
+            group.fields.map(field => {
+              if (field.type === 'note') return null
+              const fs = getFieldState(state, field.id)
+              let displayValue = ''
+              switch (field.type) {
+                case 'select':
+                  displayValue = (field as SelectField).options[fs.selectIndex]?.label ?? ''
+                  break
+                case 'input':
+                  displayValue = fs.inputValue || '(empty)'
+                  break
+                case 'multiselect':
+                  displayValue = fs.multiSelected.size > 0
+                    ? [...fs.multiSelected].join(', ')
+                    : '(none)'
+                  break
+                case 'confirm':
+                  displayValue = fs.confirmValue ? 'Yes' : 'No'
+                  break
+              }
+              return (
+                <Box key={field.id} flexDirection="column">
+                  <Box>
+                    <Text color={colors.success}>{'\u25C7'}  </Text>
+                    <Text dimColor>{field.label}</Text>
+                  </Box>
+                  <Box>
+                    <Text>   </Text>
                     <Text color={colors.info}>{displayValue}</Text>
                   </Box>
-                )
-              })}
-            </Box>
+                </Box>
+              )
+            })
           ))}
-          <Text dimColor>{'─'.repeat(40)}</Text>
         </Box>
       </Box>
     )
@@ -669,51 +731,79 @@ export function FormBuilder() {
 
   // ── Active form view ───────────────────────────────────────────────
 
+  function getSymbol(i: number): BarSymbol {
+    const field = currentGroup.fields[i]!
+    const fs = getFieldState(state, field.id)
+    if (i === fieldIndex) {
+      return fs.error ? 'error' : 'active'
+    }
+    return i < fieldIndex ? 'done' : 'pending'
+  }
+
   return (
     <Box flexDirection="column" paddingX={1}>
-      {/* Header */}
-      <Box marginBottom={1} gap={2}>
-        <Text bold color={colors.primary}>Deploy Configuration</Text>
-        <ProgressBar current={groupIndex} total={GROUPS.length} />
-      </Box>
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderColor={colors.primary}
+        paddingX={2}
+        overflow="hidden"
+      >
+        {/* Header */}
+        <Box justifyContent="space-between" marginBottom={1}>
+          <Text bold color={colors.primary}>{currentGroup.title}</Text>
+          <Box gap={1}>
+            <Text dimColor>{groupIndex + 1}/{GROUPS.length}</Text>
+            <Box>
+              {GROUPS.map((_, i) => (
+                <Text key={i} color={i === groupIndex ? colors.primary : i < groupIndex ? colors.success : 'gray'}>
+                  {i <= groupIndex ? '\u25CF' : '\u25CB'}
+                </Text>
+              ))}
+            </Box>
+          </Box>
+        </Box>
 
-      {/* Group title */}
-      <Box marginBottom={1}>
-        <Text bold color={colors.secondary}>{currentGroup.title}</Text>
-      </Box>
-
-      {/* Fields */}
-      <Box flexDirection="column" gap={1}>
+        {/* Fields with guide bar */}
         {currentGroup.fields.map((field, i) => {
-          const active = i === fieldIndex
+          const symbol = getSymbol(i)
           const fs = getFieldState(state, field.id)
 
-          switch (field.type) {
-            case 'select':
-              return <SelectFieldView key={field.id} field={field as SelectField} fs={fs} active={active} />
-            case 'input':
-              return <InputFieldView key={field.id} field={field as InputField} fs={fs} active={active} />
-            case 'multiselect':
-              return <MultiSelectFieldView key={field.id} field={field as MultiSelectField} fs={fs} active={active} />
-            case 'confirm':
-              return <ConfirmFieldView key={field.id} field={field as ConfirmField} fs={fs} active={active} />
-            case 'note':
-              return <NoteFieldView key={field.id} field={field as NoteField} values={values} active={active} />
-          }
-        })}
-      </Box>
+          const isLast = i === currentGroup.fields.length - 1
 
-      {/* Help bar */}
-      <Box marginTop={1} gap={1}>
-        <Text dimColor>
-          <Text bold>tab</Text>/<Text bold>shift+tab</Text> navigate
-          {'  '}
-          {currentField?.type === 'select' && <><Text bold>up</Text>/<Text bold>down</Text> select  </>}
-          {currentField?.type === 'multiselect' && <><Text bold>space</Text> toggle  <Text bold>up</Text>/<Text bold>down</Text> move  </>}
-          {currentField?.type === 'input' && <><Text bold>type</Text> to enter  </>}
-          {currentField?.type === 'confirm' && <><Text bold>y</Text>/<Text bold>n</Text> or <Text bold>left</Text>/<Text bold>right</Text>  </>}
-          <Text bold>enter</Text> next
-        </Text>
+          return (
+            <Box key={field.id} flexDirection="column">
+              {(() => {
+                switch (field.type) {
+                  case 'select':
+                    return <SelectFieldView field={field as SelectField} fs={fs} symbol={symbol} />
+                  case 'input':
+                    return <InputFieldView field={field as InputField} fs={fs} symbol={symbol} />
+                  case 'multiselect':
+                    return <MultiSelectFieldView field={field as MultiSelectField} fs={fs} symbol={symbol} />
+                  case 'confirm':
+                    return <ConfirmFieldView field={field as ConfirmField} fs={fs} symbol={symbol} />
+                  case 'note':
+                    return <NoteFieldView field={field as NoteField} values={values} symbol={symbol} />
+                }
+              })()}
+              {!isLast && <Text dimColor>{'\u2502'}</Text>}
+            </Box>
+          )
+        })}
+
+        {/* Help */}
+        <Box marginTop={1}>
+          <Text dimColor>
+            <Text bold>tab</Text> next  <Text bold>shift+tab</Text> back
+            {'  '}
+            {currentField?.type === 'select' && <><Text bold>{'\u2191'}/{'\u2193'}</Text> select  </>}
+            {currentField?.type === 'multiselect' && <><Text bold>space</Text> toggle  <Text bold>{'\u2191'}/{'\u2193'}</Text> move  </>}
+            {currentField?.type === 'input' && <><Text bold>type</Text> to enter  </>}
+            {currentField?.type === 'confirm' && <><Text bold>y</Text>/<Text bold>n</Text> choose  </>}
+            <Text bold>enter</Text> {groupIndex === GROUPS.length - 1 && fieldIndex === currentGroup.fields.length - 1 ? 'submit' : 'next'}
+          </Text>
+        </Box>
       </Box>
     </Box>
   )

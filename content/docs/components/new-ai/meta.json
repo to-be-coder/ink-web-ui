@@ -1,0 +1,17 @@
+{
+  "title": "New AI",
+  "pages": [
+    "chat-thread",
+    "streaming-text",
+    "citation-block",
+    "artifact-viewer",
+    "agent-timeline",
+    "multi-agent-flow",
+    "suggestion-chips",
+    "feedback-bar",
+    "token-metrics",
+    "context-window",
+    "confirmation-prompt",
+    "markdown-preview"
+  ]
+}

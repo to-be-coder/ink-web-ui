@@ -2,206 +2,187 @@ import { useReducer } from 'react'
 import { Box, Text, useInput } from 'ink-web'
 import { useTheme } from './theme'
 
-/* ────────────────────── Column definition ────────────────────── */
+/* ── Types ── */
 
 interface Column {
   id: string
   header: string
-  accessor: string
-  sortable: boolean
   width: number
-  align: 'left' | 'right' | 'center'
+  align: 'left' | 'right'
+  sortable: boolean
 }
 
 interface Row {
   [key: string]: string | number
 }
 
-/* ────────────────────── Sort descriptor ────────────────────── */
-
 interface SortEntry {
   colId: string
-  direction: 'asc' | 'desc'
+  dir: 'asc' | 'desc'
 }
-
-/* ────────────────────── State ────────────────────── */
 
 interface State {
   cursorRow: number
   cursorCol: number
   sorts: SortEntry[]
-  filterQuery: string
+  filter: string
   filterMode: boolean
-  selectedRows: Set<number>
-  scrollOffset: number
+  selected: Set<number>
+  scroll: number
+  colWidths: number[]
 }
 
 type Action =
-  | { type: 'move_up' }
-  | { type: 'move_down'; max: number }
-  | { type: 'move_left' }
-  | { type: 'move_right'; max: number }
+  | { type: 'up' }
+  | { type: 'down'; max: number }
+  | { type: 'left' }
+  | { type: 'right'; max: number }
   | { type: 'page_up' }
   | { type: 'page_down'; max: number }
-  | { type: 'go_first' }
-  | { type: 'go_last'; max: number }
-  | { type: 'toggle_sort'; colId: string }
-  | { type: 'add_sort'; colId: string }
-  | { type: 'toggle_select'; rowIndex: number }
+  | { type: 'top' }
+  | { type: 'bottom'; max: number }
+  | { type: 'sort'; colId: string }
+  | { type: 'multi_sort'; colId: string }
+  | { type: 'toggle_select' }
   | { type: 'select_all'; max: number }
-  | { type: 'clear_selection' }
-  | { type: 'enter_filter' }
-  | { type: 'exit_filter' }
+  | { type: 'clear_select' }
+  | { type: 'start_filter' }
+  | { type: 'end_filter' }
   | { type: 'clear_filter' }
-  | { type: 'filter_char'; char: string }
-  | { type: 'filter_backspace' }
-  | { type: 'set_scroll'; offset: number }
+  | { type: 'filter_type'; ch: string }
+  | { type: 'filter_del' }
+  | { type: 'widen_col' }
+  | { type: 'narrow_col' }
 
-function clamp(val: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, val))
+/* ── Column definitions ── */
+
+const COLUMNS: Column[] = [
+  { id: 'name',   header: 'Name',   width: 16, align: 'left',  sortable: true },
+  { id: 'status', header: 'Status', width: 9,  align: 'left',  sortable: true },
+  { id: 'cpu',    header: 'CPU%',   width: 7,  align: 'right', sortable: true },
+  { id: 'memory', header: 'Mem MB', width: 8,  align: 'right', sortable: true },
+  { id: 'uptime', header: 'Uptime', width: 10, align: 'left',  sortable: true },
+  { id: 'region', header: 'Region', width: 10, align: 'left',  sortable: true },
+]
+
+const VIEWPORT = 15
+const SEL_W = 3
+
+/* ── Demo data ── */
+
+const ROWS: Row[] = [
+  { name: 'api-gateway',   status: 'running', cpu: 12.4, memory: 256,  uptime: '14d 3h',  region: 'us-east-1' },
+  { name: 'auth-service',  status: 'running', cpu: 8.2,  memory: 128,  uptime: '14d 3h',  region: 'us-east-1' },
+  { name: 'worker-01',     status: 'running', cpu: 67.8, memory: 512,  uptime: '7d 12h',  region: 'us-west-2' },
+  { name: 'worker-02',     status: 'running', cpu: 43.1, memory: 384,  uptime: '7d 12h',  region: 'us-west-2' },
+  { name: 'cache-redis',   status: 'running', cpu: 3.5,  memory: 1200, uptime: '30d 1h',  region: 'us-east-1' },
+  { name: 'db-primary',    status: 'running', cpu: 22.7, memory: 2100, uptime: '30d 1h',  region: 'us-east-1' },
+  { name: 'db-replica',    status: 'stopped', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'us-east-1' },
+  { name: 'queue-rabbit',  status: 'running', cpu: 5.3,  memory: 340,  uptime: '21d 8h',  region: 'eu-west-1' },
+  { name: 'ml-inference',  status: 'running', cpu: 89.2, memory: 4200, uptime: '2d 6h',   region: 'us-west-2' },
+  { name: 'scheduler',     status: 'pending', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'us-east-1' },
+  { name: 'monitoring',    status: 'running', cpu: 6.1,  memory: 192,  uptime: '14d 3h',  region: 'eu-west-1' },
+  { name: 'cdn-proxy',     status: 'running', cpu: 15.9, memory: 96,   uptime: '60d 2h',  region: 'ap-south-1' },
+  { name: 'log-collector', status: 'running', cpu: 11.3, memory: 280,  uptime: '14d 3h',  region: 'us-east-1' },
+  { name: 'email-service', status: 'stopped', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'eu-west-1' },
+  { name: 'cron-jobs',     status: 'running', cpu: 1.8,  memory: 64,   uptime: '45d 0h',  region: 'us-east-1' },
+  { name: 'search-engine', status: 'running', cpu: 34.5, memory: 1800, uptime: '10d 4h',  region: 'us-west-2' },
+  { name: 'file-storage',  status: 'running', cpu: 7.9,  memory: 220,  uptime: '30d 1h',  region: 'ap-south-1' },
+  { name: 'notification',  status: 'pending', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'us-east-1' },
+  { name: 'analytics',     status: 'running', cpu: 28.3, memory: 960,  uptime: '5d 11h',  region: 'eu-west-1' },
+  { name: 'billing-svc',   status: 'running', cpu: 4.6,  memory: 148,  uptime: '14d 3h',  region: 'us-east-1' },
+]
+
+/* ── Helpers ── */
+
+function pad(s: string, w: number, align: 'left' | 'right'): string {
+  const t = s.length > w ? s.slice(0, w) : s
+  const gap = w - t.length
+  return align === 'right' ? ' '.repeat(gap) + t : t + ' '.repeat(gap)
 }
+
+function statusColor(v: string, c: ReturnType<typeof useTheme>): string | undefined {
+  if (v === 'running') return c.success
+  if (v === 'stopped') return c.error
+  if (v === 'pending') return c.warning
+  return undefined
+}
+
+function isNumCol(id: string): boolean {
+  return id === 'cpu' || id === 'memory'
+}
+
+/* ── Reducer ── */
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'move_up':
+    case 'up':
       return { ...state, cursorRow: Math.max(0, state.cursorRow - 1) }
-    case 'move_down':
+    case 'down':
       return { ...state, cursorRow: Math.min(action.max - 1, state.cursorRow + 1) }
-    case 'move_left':
+    case 'left':
       return { ...state, cursorCol: Math.max(0, state.cursorCol - 1) }
-    case 'move_right':
+    case 'right':
       return { ...state, cursorCol: Math.min(action.max - 1, state.cursorCol + 1) }
     case 'page_up':
       return { ...state, cursorRow: Math.max(0, state.cursorRow - 10) }
     case 'page_down':
       return { ...state, cursorRow: Math.min(action.max - 1, state.cursorRow + 10) }
-    case 'go_first':
+    case 'top':
       return { ...state, cursorRow: 0 }
-    case 'go_last':
+    case 'bottom':
       return { ...state, cursorRow: Math.max(0, action.max - 1) }
-    case 'toggle_sort': {
-      const existing = state.sorts.find(s => s.colId === action.colId)
+    case 'sort': {
+      const cur = state.sorts.find(s => s.colId === action.colId)
       let next: SortEntry[]
-      if (!existing) {
-        next = [{ colId: action.colId, direction: 'asc' }]
-      } else if (existing.direction === 'asc') {
-        next = [{ colId: action.colId, direction: 'desc' }]
-      } else {
-        next = []
-      }
+      if (!cur) next = [{ colId: action.colId, dir: 'asc' }]
+      else if (cur.dir === 'asc') next = [{ colId: action.colId, dir: 'desc' }]
+      else next = []
       return { ...state, sorts: next, cursorRow: 0 }
     }
-    case 'add_sort': {
-      const existing = state.sorts.find(s => s.colId === action.colId)
-      if (!existing) {
-        return { ...state, sorts: [...state.sorts, { colId: action.colId, direction: 'asc' }], cursorRow: 0 }
-      } else if (existing.direction === 'asc') {
-        return {
-          ...state,
-          sorts: state.sorts.map(s => s.colId === action.colId ? { ...s, direction: 'desc' as const } : s),
-          cursorRow: 0,
-        }
-      } else {
-        return {
-          ...state,
-          sorts: state.sorts.filter(s => s.colId !== action.colId),
-          cursorRow: 0,
-        }
-      }
+    case 'multi_sort': {
+      const cur = state.sorts.find(s => s.colId === action.colId)
+      if (!cur) return { ...state, sorts: [...state.sorts, { colId: action.colId, dir: 'asc' }], cursorRow: 0 }
+      if (cur.dir === 'asc') return { ...state, sorts: state.sorts.map(s => s.colId === action.colId ? { ...s, dir: 'desc' as const } : s), cursorRow: 0 }
+      return { ...state, sorts: state.sorts.filter(s => s.colId !== action.colId), cursorRow: 0 }
     }
     case 'toggle_select': {
-      const next = new Set(state.selectedRows)
-      if (next.has(action.rowIndex)) next.delete(action.rowIndex)
-      else next.add(action.rowIndex)
-      return { ...state, selectedRows: next }
+      const next = new Set(state.selected)
+      if (next.has(state.cursorRow)) next.delete(state.cursorRow)
+      else next.add(state.cursorRow)
+      return { ...state, selected: next }
     }
     case 'select_all': {
       const all = new Set<number>()
       for (let i = 0; i < action.max; i++) all.add(i)
-      return { ...state, selectedRows: all }
+      return { ...state, selected: all }
     }
-    case 'clear_selection':
-      return { ...state, selectedRows: new Set() }
-    case 'enter_filter':
-      return { ...state, filterMode: true, filterQuery: '', cursorRow: 0 }
-    case 'exit_filter':
+    case 'clear_select':
+      return { ...state, selected: new Set() }
+    case 'start_filter':
+      return { ...state, filterMode: true, filter: '', cursorRow: 0 }
+    case 'end_filter':
       return { ...state, filterMode: false }
     case 'clear_filter':
-      return { ...state, filterMode: false, filterQuery: '', cursorRow: 0 }
-    case 'filter_char':
-      return { ...state, filterQuery: state.filterQuery + action.char, cursorRow: 0 }
-    case 'filter_backspace':
-      return { ...state, filterQuery: state.filterQuery.slice(0, -1), cursorRow: 0 }
-    case 'set_scroll':
-      return { ...state, scrollOffset: action.offset }
+      return { ...state, filterMode: false, filter: '', cursorRow: 0 }
+    case 'filter_type':
+      return { ...state, filter: state.filter + action.ch, cursorRow: 0 }
+    case 'filter_del':
+      return { ...state, filter: state.filter.slice(0, -1), cursorRow: 0 }
+    case 'widen_col': {
+      const w = [...state.colWidths]
+      w[state.cursorCol] = Math.min(30, (w[state.cursorCol] ?? 10) + 2)
+      return { ...state, colWidths: w }
+    }
+    case 'narrow_col': {
+      const w = [...state.colWidths]
+      w[state.cursorCol] = Math.max(4, (w[state.cursorCol] ?? 10) - 2)
+      return { ...state, colWidths: w }
+    }
   }
 }
 
-/* ────────────────────── Column definitions ────────────────────── */
-
-const COLUMNS: Column[] = [
-  { id: 'name',   header: 'Name',      accessor: 'name',   sortable: true,  width: 16, align: 'left' },
-  { id: 'status', header: 'Status',    accessor: 'status', sortable: true,  width: 9,  align: 'left' },
-  { id: 'cpu',    header: 'CPU%',      accessor: 'cpu',    sortable: true,  width: 7,  align: 'right' },
-  { id: 'memory', header: 'Mem MB',    accessor: 'memory', sortable: true,  width: 8,  align: 'right' },
-  { id: 'uptime', header: 'Uptime',    accessor: 'uptime', sortable: true,  width: 10, align: 'left' },
-  { id: 'region', header: 'Region',    accessor: 'region', sortable: true,  width: 10, align: 'left' },
-]
-
-const SEL_COL_WIDTH = 3
-
-/* ────────────────────── Demo data (20 rows) ────────────────────── */
-
-const ROWS: Row[] = [
-  { name: 'api-gateway',    status: 'running', cpu: 12.4, memory: 256,  uptime: '14d 3h',  region: 'us-east-1' },
-  { name: 'auth-service',   status: 'running', cpu: 8.2,  memory: 128,  uptime: '14d 3h',  region: 'us-east-1' },
-  { name: 'worker-01',      status: 'running', cpu: 67.8, memory: 512,  uptime: '7d 12h',  region: 'us-west-2' },
-  { name: 'worker-02',      status: 'running', cpu: 43.1, memory: 384,  uptime: '7d 12h',  region: 'us-west-2' },
-  { name: 'cache-redis',    status: 'running', cpu: 3.5,  memory: 1200, uptime: '30d 1h',  region: 'us-east-1' },
-  { name: 'db-primary',     status: 'running', cpu: 22.7, memory: 2100, uptime: '30d 1h',  region: 'us-east-1' },
-  { name: 'db-replica',     status: 'stopped', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'us-east-1' },
-  { name: 'queue-rabbit',   status: 'running', cpu: 5.3,  memory: 340,  uptime: '21d 8h',  region: 'eu-west-1' },
-  { name: 'ml-inference',   status: 'running', cpu: 89.2, memory: 4200, uptime: '2d 6h',   region: 'us-west-2' },
-  { name: 'scheduler',      status: 'pending', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'us-east-1' },
-  { name: 'monitoring',     status: 'running', cpu: 6.1,  memory: 192,  uptime: '14d 3h',  region: 'eu-west-1' },
-  { name: 'cdn-proxy',      status: 'running', cpu: 15.9, memory: 96,   uptime: '60d 2h',  region: 'ap-south-1' },
-  { name: 'log-collector',  status: 'running', cpu: 11.3, memory: 280,  uptime: '14d 3h',  region: 'us-east-1' },
-  { name: 'email-service',  status: 'stopped', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'eu-west-1' },
-  { name: 'cron-jobs',      status: 'running', cpu: 1.8,  memory: 64,   uptime: '45d 0h',  region: 'us-east-1' },
-  { name: 'search-engine',  status: 'running', cpu: 34.5, memory: 1800, uptime: '10d 4h',  region: 'us-west-2' },
-  { name: 'file-storage',   status: 'running', cpu: 7.9,  memory: 220,  uptime: '30d 1h',  region: 'ap-south-1' },
-  { name: 'notification',   status: 'pending', cpu: 0.0,  memory: 0,    uptime: '-',        region: 'us-east-1' },
-  { name: 'analytics',      status: 'running', cpu: 28.3, memory: 960,  uptime: '5d 11h',  region: 'eu-west-1' },
-  { name: 'billing-svc',    status: 'running', cpu: 4.6,  memory: 148,  uptime: '14d 3h',  region: 'us-east-1' },
-]
-
-/* ────────────────────── Helpers ────────────────────── */
-
-function pad(str: string, width: number, align: 'left' | 'right' | 'center' = 'left'): string {
-  const s = str.length > width ? str.slice(0, width) : str
-  const remaining = width - s.length
-  if (align === 'right') return ' '.repeat(remaining) + s
-  if (align === 'center') {
-    const left = Math.floor(remaining / 2)
-    return ' '.repeat(left) + s + ' '.repeat(remaining - left)
-  }
-  return s + ' '.repeat(remaining)
-}
-
-function statusColor(value: string, colors: ReturnType<typeof useTheme>): string | undefined {
-  if (value === 'running') return colors.success
-  if (value === 'stopped') return colors.error
-  if (value === 'pending') return colors.warning
-  return undefined
-}
-
-function isNumericColumn(colId: string): boolean {
-  return colId === 'cpu' || colId === 'memory'
-}
-
-const VIEWPORT = 15
-
-/* ────────────────────── Component ────────────────────── */
+/* ── Component ── */
 
 export function DataTable() {
   const colors = useTheme()
@@ -210,229 +191,194 @@ export function DataTable() {
     cursorRow: 0,
     cursorCol: 0,
     sorts: [],
-    filterQuery: '',
+    filter: '',
     filterMode: false,
-    selectedRows: new Set<number>(),
-    scrollOffset: 0,
+    selected: new Set<number>(),
+    scroll: 0,
+    colWidths: COLUMNS.map(c => c.width),
   })
 
-  const { cursorRow, cursorCol, sorts, filterQuery, filterMode, selectedRows } = state
+  const { cursorRow, cursorCol, sorts, filter, filterMode, selected, colWidths } = state
 
-  /* ── Filter ── */
-  let filteredRows = ROWS
-  if (filterQuery) {
-    const q = filterQuery.toLowerCase()
-    filteredRows = ROWS.filter(row =>
-      Object.values(row).some(v => String(v).toLowerCase().includes(q))
-    )
+  // Filter
+  let filtered = ROWS
+  if (filter) {
+    const q = filter.toLowerCase()
+    filtered = ROWS.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q)))
   }
 
-  /* ── Sort ── */
-  const sortedRows = [...filteredRows]
+  // Sort
+  const sorted = [...filtered]
   if (sorts.length > 0) {
-    sortedRows.sort((a, b) => {
-      for (const entry of sorts) {
-        const col = COLUMNS.find(c => c.id === entry.colId)
+    sorted.sort((a, b) => {
+      for (const s of sorts) {
+        const col = COLUMNS.find(c => c.id === s.colId)
         if (!col) continue
-        const va = a[col.accessor]
-        const vb = b[col.accessor]
-        let cmp = 0
-        if (isNumericColumn(col.id)) {
-          cmp = (Number(va) || 0) - (Number(vb) || 0)
-        } else {
-          cmp = String(va).localeCompare(String(vb))
-        }
-        if (entry.direction === 'desc') cmp = -cmp
+        let cmp = isNumCol(col.id)
+          ? (Number(a[col.id]) || 0) - (Number(b[col.id]) || 0)
+          : String(a[col.id]).localeCompare(String(b[col.id]))
+        if (s.dir === 'desc') cmp = -cmp
         if (cmp !== 0) return cmp
       }
       return 0
     })
   }
 
-  const totalRows = sortedRows.length
+  const total = sorted.length
 
-  /* ── Scroll ── */
-  const maxScroll = Math.max(0, totalRows - VIEWPORT)
-  let scrollOff = state.scrollOffset
-  // Ensure cursor is visible
+  // Scroll
+  let scrollOff = state.scroll
   if (cursorRow < scrollOff) scrollOff = cursorRow
   if (cursorRow >= scrollOff + VIEWPORT) scrollOff = cursorRow - VIEWPORT + 1
-  scrollOff = clamp(scrollOff, 0, maxScroll)
+  scrollOff = Math.max(0, Math.min(scrollOff, Math.max(0, total - VIEWPORT)))
+  const visible = sorted.slice(scrollOff, scrollOff + VIEWPORT)
 
-  const visibleRows = sortedRows.slice(scrollOff, scrollOff + VIEWPORT)
-
-  /* ── Scrollbar ── */
-  const showScrollbar = totalRows > VIEWPORT
-  let thumbStart = 0
-  let thumbSize = VIEWPORT
-  if (showScrollbar && totalRows > 0) {
-    thumbSize = Math.max(1, Math.round((VIEWPORT / totalRows) * VIEWPORT))
+  // Scrollbar
+  const showScroll = total > VIEWPORT
+  const maxScroll = Math.max(1, total - VIEWPORT)
+  let thumbSize = VIEWPORT, thumbStart = 0
+  if (showScroll) {
+    thumbSize = Math.max(1, Math.round((VIEWPORT / total) * VIEWPORT))
     thumbStart = Math.round((scrollOff / maxScroll) * (VIEWPORT - thumbSize))
   }
 
-  /* ── Sort indicator for a column ── */
-  function sortIndicator(colId: string): string {
-    const entry = sorts.find(s => s.colId === colId)
-    if (!entry) return '\u00B7'  // middle dot
-    return entry.direction === 'asc' ? '\u25B2' : '\u25BC'
+  // Sort indicator
+  function sortInd(colId: string): string {
+    const e = sorts.find(s => s.colId === colId)
+    if (!e) return '\u00B7'
+    return e.dir === 'asc' ? '\u25B2' : '\u25BC'
   }
 
-  /* ── Sort description for footer ── */
-  function sortDescription(): string {
-    if (sorts.length === 0) return ''
+  function sortDesc(): string {
     return sorts.map(s => {
       const col = COLUMNS.find(c => c.id === s.colId)
-      return `${col?.header ?? s.colId} ${s.direction === 'asc' ? '\u25B2' : '\u25BC'}`
+      return `${col?.header ?? s.colId} ${s.dir === 'asc' ? '\u25B2' : '\u25BC'}`
     }).join(', ')
   }
 
-  /* ── Input handling ── */
+  // Input
   useInput((ch, key) => {
     if (filterMode) {
-      if (key.escape) dispatch({ type: 'exit_filter' })
+      if (key.escape) dispatch({ type: 'end_filter' })
       else if (key.ctrl && ch === 'x') dispatch({ type: 'clear_filter' })
-      else if (key.backspace || key.delete) dispatch({ type: 'filter_backspace' })
-      else if (ch && !key.ctrl && !key.meta) dispatch({ type: 'filter_char', char: ch })
+      else if (key.backspace || key.delete) dispatch({ type: 'filter_del' })
+      else if (ch && !key.ctrl && !key.meta) dispatch({ type: 'filter_type', ch })
       return
     }
 
-    if (key.upArrow) dispatch({ type: 'move_up' })
-    else if (key.downArrow) dispatch({ type: 'move_down', max: totalRows })
-    else if (key.leftArrow) dispatch({ type: 'move_left' })
-    else if (key.rightArrow) dispatch({ type: 'move_right', max: COLUMNS.length })
+    if (key.upArrow || ch === 'k') dispatch({ type: 'up' })
+    else if (key.downArrow || ch === 'j') dispatch({ type: 'down', max: total })
+    else if (key.leftArrow || ch === 'h') dispatch({ type: 'left' })
+    else if (key.rightArrow || ch === 'l') dispatch({ type: 'right', max: COLUMNS.length })
     else if (key.pageUp) dispatch({ type: 'page_up' })
-    else if (key.pageDown) dispatch({ type: 'page_down', max: totalRows })
-    else if (ch === 'g') dispatch({ type: 'go_first' })
-    else if (ch === 'G') dispatch({ type: 'go_last', max: totalRows })
+    else if (key.pageDown) dispatch({ type: 'page_down', max: total })
+    else if (ch === 'g') dispatch({ type: 'top' })
+    else if (ch === 'G') dispatch({ type: 'bottom', max: total })
     else if (ch === 's') {
       const col = COLUMNS[cursorCol]
-      if (col && col.sortable) dispatch({ type: 'toggle_sort', colId: col.id })
+      if (col?.sortable) dispatch({ type: 'sort', colId: col.id })
     }
     else if (ch === 'S') {
       const col = COLUMNS[cursorCol]
-      if (col && col.sortable) dispatch({ type: 'add_sort', colId: col.id })
+      if (col?.sortable) dispatch({ type: 'multi_sort', colId: col.id })
     }
-    else if (ch === ' ') dispatch({ type: 'toggle_select', rowIndex: cursorRow })
-    else if (ch === 'a') dispatch({ type: 'select_all', max: totalRows })
-    else if (ch === 'x') dispatch({ type: 'clear_selection' })
-    else if (ch === '/') dispatch({ type: 'enter_filter' })
+    else if (ch === ' ') dispatch({ type: 'toggle_select' })
+    else if (ch === 'a') dispatch({ type: 'select_all', max: total })
+    else if (ch === 'x') dispatch({ type: 'clear_select' })
+    else if (ch === '/') dispatch({ type: 'start_filter' })
+    else if (ch === '+') dispatch({ type: 'widen_col' })
+    else if (ch === '-') dispatch({ type: 'narrow_col' })
   })
 
-  /* ── Total table width for separator ── */
-  const tableWidth = SEL_COL_WIDTH + COLUMNS.reduce((s, c) => s + c.width + 1, 0) + (showScrollbar ? 2 : 0)
-
   return (
-    <Box flexDirection="column" paddingX={1}>
-      {/* Title bar */}
+    <Box flexDirection="column" paddingX={1} overflow="hidden">
+      {/* Title */}
       <Box marginBottom={0} gap={2}>
         <Text bold color={colors.primary}>DataTable</Text>
-        {selectedRows.size > 0 && (
-          <Text color={colors.success}>{selectedRows.size} selected</Text>
-        )}
+        {selected.size > 0 && <Text color={colors.success}>{selected.size} selected</Text>}
       </Box>
 
-      {/* Filter bar */}
+      {/* Filter */}
       {filterMode && (
         <Box>
           <Text color={colors.warning}>/ </Text>
-          <Text>{filterQuery}</Text>
+          <Text>{filter}</Text>
           <Text color="gray">_</Text>
-          <Text dimColor>  {filteredRows.length}/{ROWS.length} rows</Text>
+          <Text dimColor>  {filtered.length}/{ROWS.length} rows</Text>
         </Box>
       )}
-      {!filterMode && filterQuery && (
+      {!filterMode && filter && (
         <Box>
           <Text dimColor>filter: </Text>
-          <Text color={colors.warning}>{filterQuery}</Text>
-          <Text dimColor>  {filteredRows.length}/{ROWS.length} rows</Text>
+          <Text color={colors.warning}>{filter}</Text>
+          <Text dimColor>  {filtered.length}/{ROWS.length} rows</Text>
         </Box>
       )}
 
-      {/* Header row */}
+      {/* Header */}
       <Box>
-        <Box width={SEL_COL_WIDTH}>
-          <Text dimColor> </Text>
-        </Box>
+        <Box width={SEL_W}><Text dimColor> </Text></Box>
         {COLUMNS.map((col, ci) => {
-          const isActiveCol = ci === cursorCol
-          const indicator = col.sortable ? sortIndicator(col.id) : ' '
+          const w = colWidths[ci] ?? col.width
+          const active = ci === cursorCol
+          const ind = col.sortable ? sortInd(col.id) : ' '
           return (
-            <Box key={col.id} width={col.width + 1}>
-              <Text bold color={isActiveCol ? 'white' : 'gray'}>
-                {pad(col.header, col.width - 2, col.align)}{' '}{indicator}
+            <Box key={col.id} width={w + 1}>
+              <Text bold color={active ? 'white' : 'gray'}>
+                {pad(col.header, w - 2, col.align)} {ind}
               </Text>
             </Box>
           )
         })}
-        {showScrollbar && <Box width={2}><Text> </Text></Box>}
+        {showScroll && <Box width={2}><Text> </Text></Box>}
       </Box>
 
       {/* Separator */}
-      <Box>
-        <Text dimColor>{'\u2500'.repeat(tableWidth)}</Text>
-      </Box>
+      <Text dimColor wrap="truncate-end">{'\u2500'.repeat(200)}</Text>
 
-      {/* Data rows */}
+      {/* Rows */}
       <Box flexDirection="column">
-        {visibleRows.map((row, vi) => {
-          const rowIdx = scrollOff + vi
-          const isActiveRow = rowIdx === cursorRow
-          const isSelected = selectedRows.has(rowIdx)
-          const isEvenRow = vi % 2 === 0
+        {visible.map((row, vi) => {
+          const ri = scrollOff + vi
+          const activeRow = ri === cursorRow
+          const sel = selected.has(ri)
+          const even = vi % 2 === 0
 
           return (
-            <Box key={rowIdx}>
-              {/* Selection column */}
-              <Box width={SEL_COL_WIDTH}>
-                <Text color={isSelected ? colors.success : undefined}>
-                  {isSelected ? ' \u2714' : '  '}
-                </Text>
+            <Box key={ri}>
+              <Box width={SEL_W}>
+                <Text color={sel ? colors.success : undefined}>{sel ? ' \u2714' : '  '}</Text>
               </Box>
-
-              {/* Data cells */}
               {COLUMNS.map((col, ci) => {
-                const val = String(row[col.accessor] ?? '')
-                const isActiveCell = isActiveRow && ci === cursorCol
-                const isStatusCol = col.id === 'status'
+                const w = colWidths[ci] ?? col.width
+                const val = String(row[col.id] ?? '')
+                const activeCell = activeRow && ci === cursorCol
+                const isStatus = col.id === 'status'
 
-                let cellColor: string | undefined
-                if (isActiveCell) {
-                  cellColor = 'black'
-                } else if (isStatusCol) {
-                  cellColor = statusColor(val, colors)
-                } else if (isActiveRow) {
-                  cellColor = 'white'
-                } else {
-                  cellColor = undefined
-                }
+                let fg: string | undefined
+                if (activeCell) fg = 'black'
+                else if (isStatus) fg = statusColor(val, colors)
+                else if (activeRow) fg = 'white'
 
-                let bgColor: string | undefined
-                if (isActiveCell) {
-                  bgColor = colors.primary
-                } else if (isActiveRow) {
-                  bgColor = '#333333'
-                } else if (!isEvenRow) {
-                  bgColor = '#1a1a1a'
-                } else {
-                  bgColor = undefined
-                }
+                let bg: string | undefined
+                if (activeCell) bg = colors.primary
+                else if (activeRow) bg = '#333333'
+                else if (!even) bg = '#1a1a1a'
 
                 return (
-                  <Box key={col.id} width={col.width + 1}>
+                  <Box key={col.id} width={w + 1}>
                     <Text
-                      color={cellColor}
-                      backgroundColor={bgColor}
-                      bold={isActiveCell}
-                      dimColor={!isActiveRow && !isStatusCol}
+                      color={fg}
+                      backgroundColor={bg}
+                      bold={activeCell}
+                      dimColor={!activeRow && !isStatus}
                     >
-                      {pad(val, col.width, col.align)}
+                      {pad(val, w, col.align)}
                     </Text>
                   </Box>
                 )
               })}
-
-              {/* Scrollbar */}
-              {showScrollbar && (
+              {showScroll && (
                 <Box width={2}>
                   <Text color={colors.primary}>
                     {vi >= thumbStart && vi < thumbStart + thumbSize ? ' \u2588' : ' \u2502'}
@@ -445,50 +391,31 @@ export function DataTable() {
       </Box>
 
       {/* Footer */}
-      <Box>
-        <Text dimColor>{'\u2500'.repeat(tableWidth)}</Text>
-      </Box>
+      <Text dimColor wrap="truncate-end">{'\u2500'.repeat(200)}</Text>
       <Box gap={1}>
-        <Text dimColor>
-          Row {totalRows > 0 ? cursorRow + 1 : 0}/{totalRows}
-        </Text>
-        {selectedRows.size > 0 && (
+        <Text dimColor>Row {total > 0 ? cursorRow + 1 : 0}/{total}</Text>
+        {selected.size > 0 && (
           <>
             <Text dimColor>{'\u2022'}</Text>
-            <Text color={colors.success}>{selectedRows.size} selected</Text>
+            <Text color={colors.success}>{selected.size} selected</Text>
           </>
         )}
         {sorts.length > 0 && (
           <>
             <Text dimColor>{'\u2022'}</Text>
             <Text dimColor>Sort: </Text>
-            <Text color={colors.warning}>{sortDescription()}</Text>
+            <Text color={colors.warning}>{sortDesc()}</Text>
           </>
         )}
       </Box>
 
-      {/* Help bar */}
+      {/* Help */}
       <Box marginTop={1} gap={2}>
-        <Box>
-          <Text inverse bold> {'\u2190\u2191\u2192\u2193'} </Text>
-          <Text dimColor> navigate</Text>
-        </Box>
-        <Box>
-          <Text inverse bold> s </Text>
-          <Text dimColor> sort</Text>
-        </Box>
-        <Box>
-          <Text inverse bold> space </Text>
-          <Text dimColor> select</Text>
-        </Box>
-        <Box>
-          <Text inverse bold> / </Text>
-          <Text dimColor> filter</Text>
-        </Box>
-        <Box>
-          <Text inverse bold> g/G </Text>
-          <Text dimColor> top/end</Text>
-        </Box>
+        <Box><Text inverse bold> {'\u2190\u2191\u2192\u2193'} </Text><Text dimColor> navigate</Text></Box>
+        <Box><Text inverse bold> s </Text><Text dimColor> sort</Text></Box>
+        <Box><Text inverse bold> space </Text><Text dimColor> select</Text></Box>
+        <Box><Text inverse bold> / </Text><Text dimColor> filter</Text></Box>
+        <Box><Text inverse bold> +/- </Text><Text dimColor> resize</Text></Box>
       </Box>
     </Box>
   )

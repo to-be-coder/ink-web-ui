@@ -1,0 +1,23 @@
+---
+title: Context Window
+description: Visual context window usage display with token breakdown by type and animated transitions.
+---
+## Demo
+<NewAIContextWindowDemo />
+
+## Features
+- Stacked bar visualization of context window usage
+- Token breakdown by type: system, user, assistant, tool, cached, available
+- Three scenario presets: Fresh, Mid-session, Near limit
+- Color-coded urgency (green → yellow → red) based on usage percentage
+- Animated transitions between scenarios
+- Segment-level detail with individual progress bars
+- Summary stats: used, available, max, turns
+
+## Keybindings
+- `←` / `→` — Switch scenario
+- `j` / `k` — Navigate segments
+- `a` — Toggle animation
+
+## Research Context
+Context window visualization is a gap across all major libraries. No competitor offers a visual representation of context usage breakdown. This is an entirely novel component that helps developers understand and optimize their token usage.

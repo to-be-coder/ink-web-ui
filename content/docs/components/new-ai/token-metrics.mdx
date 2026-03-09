@@ -1,0 +1,24 @@
+---
+title: Token Metrics
+description: Performance metrics dashboard with TTFT, tok/s, token breakdown, and history visualization.
+---
+## Demo
+<NewAITokenMetricsDemo />
+
+## Features
+- Key metrics: TTFT (time to first token), total time, tokens/sec, chunk count
+- Input/output token breakdown with visual bars
+- TTFT distribution bar chart across request history
+- Sparkline view for tok/s and TTFT trends
+- Cache hit indicator per request
+- Model attribution
+- Live streaming simulation mode
+- Color-coded thresholds (green/yellow/red)
+
+## Keybindings
+- `←` / `→` — Navigate request history
+- `v` — Toggle detail/sparkline view
+- `s` — Start/stop live simulation
+
+## Research Context
+Inspired by **assistant-ui** — the only library showing streaming performance metrics (TTFT, total time, tokens/second, chunk count) directly in the UI. This is a unique and valuable differentiator for developers and power users.

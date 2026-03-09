@@ -1,0 +1,22 @@
+---
+title: Streaming Text
+description: Configurable streaming text display with multiple modes and speed control.
+---
+## Demo
+<NewAIStreamingTextDemo />
+
+## Features
+- Four streaming modes: Character, Word, Line, and Instant
+- Adjustable playback speed (0.5x to 4x)
+- Live progress bar with character count
+- Animated cursor during streaming
+- Syntax-aware coloring for code and file trees
+- Restart capability for replaying the animation
+
+## Keybindings
+- `m` — Cycle streaming mode
+- `s` — Cycle speed
+- `r` — Restart stream
+
+## Research Context
+Inspired by **Stream Chat**'s configurable typewriter animation (`streamingLetterIntervalMs`) and **Vercel AI SDK**'s streaming states. Most libraries only offer character-level streaming — multiple mode options is a differentiator.

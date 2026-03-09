@@ -1,0 +1,26 @@
+---
+title: Feedback Bar
+description: Multi-step response feedback with rating, tags, and optional comments.
+---
+## Demo
+<NewAIFeedbackBarDemo />
+
+## Features
+- Three-phase feedback flow: Rate → Tag → Comment
+- Upvote/downvote rating with visual state
+- Selectable feedback tags (Accurate, Helpful, Clear, Too verbose, Incorrect, Off-topic)
+- Optional free-text comment input
+- Submitted feedback summary display
+- Reset capability for re-rating
+
+## Keybindings
+- `u` — Upvote
+- `d` — Downvote
+- `←` / `→` — Navigate tags
+- `space` — Toggle tag
+- `⏎` — Submit / next phase
+- `esc` — Skip comment
+- `r` — Reset (after submission)
+
+## Research Context
+Inspired by **Chainlit**'s feedback system (upvote/downvote on responses) and **Stream Chat**'s reaction system. Only 2 of 7 libraries offer any feedback mechanism — multi-step feedback with tags is a novel differentiator.
